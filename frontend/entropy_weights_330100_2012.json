@@ -1,0 +1,15 @@
+{
+  "U1_weights": {
+    "road_density": 0.08780037162652882,
+    "walk_accessibility": 0.0655583879194334,
+    "metro_line_density": 0.0710457793522532,
+    "station_count": 0.20898466146848318,
+    "line_count": 0.5666107996333014
+  },
+  "U2_weights": {
+    "population_density": 0.6447589943995921,
+    "poi_density": 7.578545802941747e-16,
+    "poi_diversity": 7.578545802941747e-16,
+    "gdp_density": 0.3552410056004064
+  }
+}

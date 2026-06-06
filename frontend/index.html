@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metro-Urbanization Coupling Coordination Analysis System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./vendor/leaflet.css" />
+  <script src="./vendor/leaflet.js"></script>
+  <script src="./vendor/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #111620;
+      --bg-tertiary: #1a2130;
+      --bg-hover: #232d42;
+      --text-primary: #e8eaed;
+      --text-secondary: #8b95a5;
+      --text-muted: #5a6374;
+      --border-color: #2a3444;
+      --accent-transit: #00d4ff;
+      --accent-urban: #ff6b9d;
+      --accent-coupling: #a855f7;
+      --coupling-1: #dc2626;
+      --coupling-2: #f97316;
+      --coupling-3: #eab308;
+      --coupling-4: #22c55e;
+      --coupling-5: #06b6d4;
+      --metro-line: #00bcd4;
+      --station-area: rgba(0, 212, 255, 0.15);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .app-container {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      grid-template-rows: 1fr auto;
+      height: 100vh;
+      gap: 1px;
+      background: var(--border-color);
+    }
+
+    /* Left Sidebar */
+    .left-sidebar {
+      background: var(--bg-secondary);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-section {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: var(--accent-transit);
+      border-radius: 2px;
+    }
+
+    /* City Selector */
+    .city-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .city-btn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-align: center;
+    }
+
+    .city-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent-transit);
+      color: var(--text-primary);
+    }
+
+    .city-btn.active {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: var(--accent-transit);
+      color: var(--accent-transit);
+    }
+
+    .language-switch {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 1600;
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: rgba(17, 22, 32, 0.88);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .language-option {
+      min-width: 38px;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .language-option:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .language-option.active {
+      color: var(--accent-transit);
+      background: rgba(0, 212, 255, 0.15);
+    }
+
+    /* Layer Toggle */
+    .layer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .layer-item:last-child {
+      border-bottom: none;
+    }
+
+    .layer-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .layer-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .layer-icon.population { background: rgba(255, 107, 157, 0.3); color: var(--accent-urban); }
+    .layer-icon.road { background: rgba(0, 212, 255, 0.3); color: var(--accent-transit); }
+    .layer-icon.station { background: rgba(168, 85, 247, 0.3); color: var(--accent-coupling); }
+
+    .toggle {
+      width: 40px;
+      height: 22px;
+      background: var(--bg-secondary);
+      border-radius: 11px;
+      cursor: pointer;
+      position: relative;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .toggle.active {
+      background: var(--accent-transit);
+      border-color: var(--accent-transit);
+    }
+
+    .toggle::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      background: var(--text-primary);
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+
+    .toggle.active::after {
+      transform: translateX(18px);
+    }
+
+    /* Main Map Area */
+    .main-content {
+      position: relative;
+      background: var(--bg-primary);
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #0a0e14;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .map-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .current-city-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .current-city-name .year-badge {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--accent-transit);
+      color: var(--bg-primary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .legend-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .legend-gradient {
+      width: 100%;
+      height: 12px;
+      background: linear-gradient(to right, var(--coupling-1), var(--coupling-2), var(--coupling-3), var(--coupling-4), var(--coupling-5));
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .legend-caption {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Right Sidebar */
+    .right-sidebar {
+      background: var(--bg-secondary);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid var(--border-color);
+    }
+
+    .metric-card.selected {
+      border-color: var(--accent-transit);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .metric-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-badge.U1 { background: rgba(0, 212, 255, 0.2); color: var(--accent-transit); }
+    .metric-badge.U2 { background: rgba(255, 107, 157, 0.2); color: var(--accent-urban); }
+    .metric-badge.D { background: rgba(168, 85, 247, 0.2); color: var(--accent-coupling); }
+
+    .metric-value {
+      font-size: 36px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .metric-value.U1 { color: var(--accent-transit); }
+    .metric-value.U2 { color: var(--accent-urban); }
+    .metric-value.D { color: var(--accent-coupling); }
+
+    .metric-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .metric-subtitle .level {
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+
+    .level-1 { background: rgba(220, 38, 38, 0.2); color: var(--coupling-1); }
+    .level-2 { background: rgba(249, 115, 22, 0.2); color: var(--coupling-2); }
+    .level-3 { background: rgba(234, 179, 8, 0.2); color: var(--coupling-3); }
+    .level-4 { background: rgba(34, 197, 94, 0.2); color: var(--coupling-4); }
+    .level-5 { background: rgba(6, 182, 212, 0.2); color: var(--coupling-5); }
+
+    /* Station Info */
+    .station-info {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .station-info.visible {
+      display: block;
+    }
+
+    .station-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .station-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .regional-dashboard {
+      background: radial-gradient(circle at 50% 42%, rgba(34, 197, 94, 0.08), transparent 58%), var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .regional-dashboard.visible {
+      display: block;
+    }
+
+    .regional-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .regional-station-name {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin: -4px 0 10px;
+      line-height: 1.4;
+    }
+
+    .regional-gauge {
+      width: 100%;
+      aspect-ratio: 1 / 0.92;
+      min-height: 230px;
+      display: block;
+    }
+
+    .regional-empty {
+      height: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.7;
+      border: 1px dashed rgba(139,149,165,0.25);
+      border-radius: 10px;
+    }
+
+    /* Chart */
+    .chart-container {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      height: 220px;
+    }
+
+    .chart-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 180px;
+    }
+
+    /* Timeline */
+    .timeline-container {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(17,22,32,0.95) 100%);
+      padding: 12px 26px 14px;
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr) 76px;
+      gap: 18px;
+      border-top: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+    }
+
+    .timeline-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-transit), transparent);
+      opacity: 0.4;
+    }
+
+    .timeline-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .timeline-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .timeline-main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 54px 36px 100px;
+      gap: 2px;
+      position: relative;
+    }
+
+    .timeline-current {
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding-bottom: 16px;
+      color: var(--accent-transit);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      text-shadow: 0 0 18px rgba(0,212,255,0.45);
+    }
+
+    .timeline-series-legend {
+      display: grid;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .timeline-series-legend .u1 { color: #69c7ff; }
+    .timeline-series-legend .u2 { color: #ff7aa9; }
+    .timeline-series-legend .cd { color: #5e6cff; }
+
+    .timeline-events {
+      position: relative;
+      border-bottom: 1px solid rgba(148,163,184,0.28);
+    }
+
+    .timeline-event {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      min-width: 84px;
+      max-width: 150px;
+      color: #d8dee9;
+      font-size: 11px;
+      line-height: 1.15;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+      pointer-events: none;
+    }
+
+    .timeline-event::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 29px;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 22px;
+      background: currentColor;
+      opacity: 0.85;
+    }
+
+    .timeline-event::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 48px;
+      transform: translateX(-50%) rotate(45deg);
+      width: 8px;
+      height: 8px;
+      background: currentColor;
+    }
+
+    .timeline-event.rail { color: #6db7e8; }
+    .timeline-event.plan { color: #d5a05f; }
+    .timeline-event.major { color: #e65d72; font-weight: 700; }
+
+    .timeline-track {
+      position: relative;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-years {
+      display: flex;
+      justify-content: space-between;
+      position: absolute;
+      width: 100%;
+      top: 0;
+    }
+
+    .timeline-year {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #718096;
+      cursor: pointer;
+      padding: 18px 2px 0;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      letter-spacing: 0;
+    }
+
+    .timeline-year::after {
+      content: '';
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      transform: translateX(-50%) scaleX(0);
+      width: 1px;
+      height: 7px;
+      background: rgba(148,163,184,0.7);
+      border-radius: 0;
+      transition: transform 0.25s ease;
+    }
+
+    .timeline-year:hover {
+      color: var(--text-primary);
+    }
+
+    .timeline-year:hover::after {
+      transform: translateX(-50%) scaleX(1);
+    }
+
+    .timeline-year.active {
+      color: var(--accent-transit);
+      font-weight: 700;
+      text-shadow: 0 0 20px var(--accent-transit);
+    }
+
+    .timeline-year.active::after {
+      transform: translateX(-50%) scaleX(1.5);
+      box-shadow: 0 0 8px var(--accent-transit);
+    }
+
+    .timeline-slider {
+      position: absolute;
+      width: 100%;
+      height: 7px;
+      top: 7px;
+      background: #c7ccd6;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.28);
+    }
+
+    .timeline-progress {
+      height: 100%;
+      background: #2f82b7;
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timeline-progress::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.3) 50%,
+        transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .timeline-handle {
+      width: 26px;
+      height: 26px;
+      background: #ffffff;
+      border: 4px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      transition: left 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.2s ease;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.22), 0 0 18px rgba(255,255,255,0.55);
+      z-index: 5;
+    }
+
+    .timeline-handle:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 0 24px rgba(255,255,255,0.78), 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .timeline-handle:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.25);
+    }
+
+    .timeline-handle.dragging {
+      animation: handle-pulse 0.8s infinite;
+    }
+
+    @keyframes handle-pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(255,255,255,0.7), 0 2px 8px rgba(0,0,0,0.3); }
+      50% { box-shadow: 0 0 28px rgba(255,255,255,0.9), 0 0 40px rgba(255,255,255,0.35); }
+    }
+
+    .timeline-play {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #2f82b7;
+      border: 2px solid rgba(255,255,255,0.28);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3);
+      color: #ffffff;
+    }
+
+    .timeline-play:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+    }
+
+    .timeline-play:active {
+      transform: scale(0.95);
+    }
+
+    .timeline-play.playing {
+      animation: pulse-btn 1.5s infinite;
+    }
+
+    @keyframes pulse-btn {
+      0%, 100% { box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3); }
+      50% { box-shadow: 0 4px 24px rgba(0, 212, 255, 0.6); }
+    }
+
+    #currentYearLabel {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-transit);
+      text-shadow: 0 0 24px var(--accent-transit);
+      min-width: 56px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .timeline-chart {
+      width: 100%;
+      height: 100px;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(148,163,184,0.18);
+    }
+
+    /* Loading State */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 14, 20, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--bg-tertiary);
+      border-top-color: var(--accent-transit);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tooltip */
+    .leaflet-tooltip {
+      background: var(--bg-secondary) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 8px !important;
+      color: var(--text-primary) !important;
+      font-family: 'Noto Sans SC', sans-serif !important;
+      font-size: 12px !important;
+      padding: 8px 12px !important;
+      box-shadow: var(--shadow) !important;
+    }
+
+    .leaflet-tooltip::before {
+      display: none !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Station Area Styles */
+    .station-area-polygon {
+      fill-opacity: 0.3;
+      stroke-width: 2;
+    }
+
+    /* Animation Classes */
+    .fade-in {
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.1s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+  <div class="language-switch" aria-label="Language selector">
+    <button class="language-option active" type="button" data-lang="en" onclick="setLanguage('en')">EN</button>
+    <button class="language-option" type="button" data-lang="zh" onclick="setLanguage('zh')">中</button>
+  </div>
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="left-sidebar">
+      <div class="sidebar-section">
+        <div class="section-title" data-i18n="citySelection">City Selection</div>
+        <div class="city-grid" id="cityGrid">
+          <!-- Cities will be populated dynamically -->
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title" data-i18n="dataLayers">Data Layers</div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon" style="background: rgba(148, 163, 184, 0.28); color: #cbd5e1;" data-i18n="iconMap">M</div>
+            <span data-i18n="realMap">Base Map</span>
+          </div>
+          <div class="toggle" data-layer="realMap" onclick="toggleLayer(this)"></div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon population" data-i18n="iconPopulation">P</div>
+            <span data-i18n="populationDensity">Population Density</span>
+          </div>
+          <div class="toggle" data-layer="population" onclick="toggleLayer(this)"></div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon road" data-i18n="iconRoad">R</div>
+            <span data-i18n="roadNetworkDensity">Road Network Density</span>
+          </div>
+          <div class="toggle" data-layer="road" onclick="toggleLayer(this)"></div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon station" data-i18n="iconStationArea">A</div>
+            <span data-i18n="stationCatchments">Station Catchments</span>
+          </div>
+          <div class="toggle active" data-layer="stationArea" onclick="toggleLayer(this)"></div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon" style="background: rgba(0, 188, 212, 0.3); color: #00bcd4;" data-i18n="iconMetroLine">L</div>
+            <span data-i18n="metroLines">Metro Lines</span>
+          </div>
+          <div class="toggle active" data-layer="metroLines" onclick="toggleLayer(this)"></div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-label">
+            <div class="layer-icon" style="background: rgba(255, 193, 7, 0.3); color: #ffc107;" data-i18n="iconMetroStation">S</div>
+            <span data-i18n="metroStations">Metro Stations</span>
+          </div>
+          <div class="toggle active" data-layer="metroStations" onclick="toggleLayer(this)"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title" data-i18n="couplingCoordinationDegree">Coupling Coordination Degree</div>
+        <div class="legend-gradient"></div>
+        <div class="legend-labels">
+          <span>0.0</span>
+          <span>0.2</span>
+          <span>0.4</span>
+          <span>0.6</span>
+          <span>0.8</span>
+          <span>1.0</span>
+        </div>
+        <div class="legend-caption">
+          <span data-i18n="severelyImbalanced">Severely Imbalanced</span>
+          <span data-i18n="highQualityCoordination">High-Quality Coordination</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Map -->
+    <main class="main-content">
+      <div id="map"></div>
+
+      <div class="map-overlay">
+        <div class="current-city-name">
+          <span id="currentCityName">Shenzhen</span>
+          <span class="year-badge" id="currentYearBadge">2023</span>
+        </div>
+      </div>
+
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" data-i18n="loadingData">Loading data...</div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="right-sidebar">
+      <div class="regional-dashboard" id="regionalDashboard">
+        <div class="regional-title" data-i18n="stationCatchmentDashboard">Station Catchment Coupling Dashboard</div>
+        <div class="regional-station-name" id="regionalStationName">No station selected</div>
+        <div id="regionalGauge">
+          <div class="regional-empty">Click a metro station or station catchment<br/>to view the coupling dashboard</div>
+        </div>
+      </div>
+
+      <div class="station-info" id="stationInfo">
+        <div class="station-name" id="stationName">Station Catchment Information</div>
+        <div class="station-meta" id="stationMeta"></div>
+      </div>
+
+      <div class="metric-card" id="metricU1">
+        <div class="metric-header">
+          <span class="metric-label" data-i18n="metroDevelopmentIndex">Rail Transit Development Index</span>
+          <span class="metric-badge U1">U1</span>
+        </div>
+        <div class="metric-value U1" id="u1Value">--</div>
+        <div class="metric-subtitle" id="u1Subtitle">No data</div>
+      </div>
+
+      <div class="metric-card" id="metricU2">
+        <div class="metric-header">
+          <span class="metric-label" data-i18n="urbanizationDevelopmentIndex">Urbanization Development Index</span>
+          <span class="metric-badge U2">U2</span>
+        </div>
+        <div class="metric-value U2" id="u2Value">--</div>
+        <div class="metric-subtitle" id="u2Subtitle">No data</div>
+      </div>
+
+      <div class="metric-card" id="metricD">
+        <div class="metric-header">
+          <span class="metric-label" data-i18n="couplingCoordinationDegree">Coupling Coordination Degree</span>
+          <span class="metric-badge D">D</span>
+        </div>
+        <div class="metric-value D" id="dValue">--</div>
+        <div class="metric-subtitle" id="dSubtitle">No data</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label" data-i18n="coordinationLevelDistribution">Coordination Level Distribution</span>
+        </div>
+        <div id="levelDistribution" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+          <!-- Will be populated -->
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title" data-i18n="annualCcdChange">Annual Change in Coupling Coordination Degree</div>
+        <div id="chart"></div>
+      </div>
+    </aside>
+
+    <!-- Timeline -->
+    <div class="timeline-container">
+      <div class="timeline-left">
+        <span class="timeline-label">Timeline</span>
+        <button class="timeline-play" id="playBtn" onclick="togglePlay()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+        <div class="timeline-series-legend">
+          <span class="u1">U1</span>
+          <span class="u2">U2</span>
+          <span class="cd">CD</span>
+        </div>
+      </div>
+      <div class="timeline-main">
+        <div class="timeline-events" id="timelineEvents"></div>
+        <div class="timeline-track">
+          <div class="timeline-years" id="timelineYears"></div>
+          <div class="timeline-slider" id="timelineSlider">
+            <div class="timeline-progress" id="timelineProgress"></div>
+            <div class="timeline-handle" id="timelineHandle"></div>
+          </div>
+        </div>
+        <div class="timeline-chart" id="timelineChart"></div>
+      </div>
+      <div class="timeline-current" id="currentYearLabel">2023</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // State
+    // ============================================
+    const state = {
+      currentCity: '440300',
+      currentYear: 2023,
+      language: 'en',
+      selectedStationId: null,
+      selectedStationProps: null,
+      selectedStationGeometry: null,
+      layers: {
+        realMap: false,
+        population: false,
+        road: false,
+        stationArea: true,
+        metroLines: true,
+        metroStations: true
+      },
+      isPlaying: false,
+      playInterval: null,
+      map: null,
+      chart: null,
+      timelineChart: null,
+      stationLayers: {
+        realMap: null,
+        baseRoads: null,
+        areas: null,
+        lines: null,
+        stations: null,
+        population: null
+      },
+      stationAreaById: new Map(),
+      stationAreaByName: new Map(),
+      regionalGaugeValues: null,
+      cityMeta: {},
+      timelineData: [],
+      currentSummary: null,
+      currentLevelCounts: {},
+      dataCache: new Map(),
+      loadToken: 0,
+      loadedBaseRoadCity: null,
+      currentRoadLevel: null,
+      roadLevelLayers: new Map(),
+      roadRenderer: null,
+      loadedMetroCity: null,
+      hasFittedMap: false
+    };
+
+    const i18n = {
+      en: {
+        appTitle: 'Metro-Urbanization Coupling Coordination Analysis System',
+        citySelection: 'City Selection',
+        dataLayers: 'Data Layers',
+        iconMap: 'M',
+        realMap: 'Base Map',
+        iconPopulation: 'P',
+        populationDensity: 'Population Density',
+        iconRoad: 'R',
+        roadNetworkDensity: 'Road Network Density',
+        iconStationArea: 'A',
+        stationCatchments: 'Station Catchments',
+        iconMetroLine: 'L',
+        metroLines: 'Metro Lines',
+        iconMetroStation: 'S',
+        metroStations: 'Metro Stations',
+        couplingCoordinationDegree: 'Coupling Coordination Degree',
+        severelyImbalanced: 'Severely Imbalanced',
+        moderatelyImbalanced: 'Moderately Imbalanced',
+        barelyCoordinated: 'Barely Coordinated',
+        wellCoordinated: 'Well Coordinated',
+        highQualityCoordination: 'High-Quality Coordination',
+        loadingData: 'Loading data...',
+        stationCatchmentDashboard: 'Station Catchment Coupling Dashboard',
+        noStationSelected: 'No station selected',
+        regionalEmpty: 'Click a metro station or station catchment<br/>to view the coupling dashboard',
+        stationCatchmentInfo: 'Station Catchment Information',
+        metroDevelopmentIndex: 'Rail Transit Development Index',
+        urbanizationDevelopmentIndex: 'Urbanization Development Index',
+        noData: 'No data',
+        coordinationDevelopmentLevel: 'Coordination Development Level',
+        coordinationLevelDistribution: 'Coordination Level Distribution',
+        annualCcdChange: 'Annual Change in Coupling Coordination Degree',
+        unknownStation: 'Unknown station',
+        stationCatchmentId: 'Station Catchment ID',
+        dValue: 'D value',
+        level: 'Level',
+        u1Score: 'U1 Rail Transit Development Score',
+        u2Score: 'U2 Urbanization Development Score',
+        cdScore: 'Coupling Coordination Degree',
+        firstLineOpened: 'First Metro Line Opened',
+        railNetworkLeap: 'Rail Network Leap',
+        concentratedLineOpening: 'Concentrated Line Opening',
+        masterPlan: 'Urban Master Plan',
+        newMasterPlanReleased: 'New Master Plan Released',
+        expoRailExpansion: 'World Expo and Rail Expansion',
+        masterPlan2035Released: '2035 Master Plan Released',
+        asianGamesRenewalNode: 'Asian Games Urban Renewal Node',
+        sezExpansion: 'Special Economic Zone Expansion',
+        pilotDemonstrationArea: 'Pilot Demonstration Area',
+        nationalCentralCity: 'National Central City',
+        chengduChongqingEconomicCircle: 'Chengdu-Chongqing Economic Circle',
+        g20UrbanRenewal: 'G20 Urban Renewal',
+        asianGamesTransitConstruction: 'Asian Games Transit Construction'
+      },
+      zh: {
+        appTitle: '地铁城市耦合协调度分析系统',
+        citySelection: '城市选择',
+        dataLayers: '数据图层',
+        iconMap: '图',
+        realMap: '现实地图',
+        iconPopulation: '人',
+        populationDensity: '人口密度',
+        iconRoad: '路',
+        roadNetworkDensity: '路网密度',
+        iconStationArea: '站',
+        stationCatchments: '站域范围',
+        iconMetroLine: '轨',
+        metroLines: '地铁线路',
+        iconMetroStation: '站',
+        metroStations: '地铁站点',
+        couplingCoordinationDegree: '耦合协调度',
+        severelyImbalanced: '极度失调',
+        moderatelyImbalanced: '中度失调',
+        barelyCoordinated: '勉强协调',
+        wellCoordinated: '良好协调',
+        highQualityCoordination: '优质协调',
+        loadingData: '加载数据中...',
+        stationCatchmentDashboard: '站域耦合仪表盘',
+        noStationSelected: '未选择站点',
+        regionalEmpty: '点击地铁站点或站域<br/>查看站域耦合仪表盘',
+        stationCatchmentInfo: '站域信息',
+        metroDevelopmentIndex: '轨道交通发展指数',
+        urbanizationDevelopmentIndex: '城市发展指数',
+        noData: '暂无数据',
+        coordinationDevelopmentLevel: '协调发展等级',
+        coordinationLevelDistribution: '协调发展等级分布',
+        annualCcdChange: '历年耦合协调度变化',
+        unknownStation: '未知站点',
+        stationCatchmentId: '站域ID',
+        dValue: 'D值',
+        level: '等级',
+        u1Score: 'U1 轨道发展评分',
+        u2Score: 'U2 城市发展评分',
+        cdScore: 'Coupling Degree 耦合协调度',
+        firstLineOpened: '首条线路开通',
+        railNetworkLeap: '轨道网络跃升',
+        concentratedLineOpening: '线路集中开通',
+        masterPlan: '城市总体规划',
+        newMasterPlanReleased: '新版总规发布',
+        expoRailExpansion: '世博与轨道扩张',
+        masterPlan2035Released: '2035总规发布',
+        asianGamesRenewalNode: '亚运更新节点',
+        sezExpansion: '特区扩容',
+        pilotDemonstrationArea: '先行示范区',
+        nationalCentralCity: '国家中心城市',
+        chengduChongqingEconomicCircle: '成渝双城经济圈',
+        g20UrbanRenewal: 'G20城市更新',
+        asianGamesTransitConstruction: '亚运交通建设'
+      }
+    };
+
+    function t(key) {
+      return i18n[state.language]?.[key] || i18n.en[key] || key;
+    }
+
+    function emptyRegionalDashboardHtml() {
+      return `<div class="regional-empty">${t('regionalEmpty')}</div>`;
+    }
+
+    const planningEvents = {
+      '110000': [
+        { year: 2004, labelKey: 'masterPlan', type: 'plan' },
+        { year: 2017, labelKey: 'newMasterPlanReleased', type: 'plan' }
+      ],
+      '310000': [
+        { year: 2010, labelKey: 'expoRailExpansion', type: 'plan' },
+        { year: 2017, labelKey: 'masterPlan2035Released', type: 'plan' }
+      ],
+      '440100': [
+        { year: 2010, labelKey: 'asianGamesRenewalNode', type: 'plan' },
+        { year: 2016, labelKey: 'masterPlan', type: 'plan' }
+      ],
+      '440300': [
+        { year: 2010, labelKey: 'sezExpansion', type: 'plan' },
+        { year: 2019, labelKey: 'pilotDemonstrationArea', type: 'plan' }
+      ],
+      '510100': [
+        { year: 2016, labelKey: 'nationalCentralCity', type: 'plan' },
+        { year: 2020, labelKey: 'chengduChongqingEconomicCircle', type: 'plan' }
+      ],
+      '330100': [
+        { year: 2016, labelKey: 'g20UrbanRenewal', type: 'plan' },
+        { year: 2022, labelKey: 'asianGamesTransitConstruction', type: 'plan' }
+      ]
+    };
+
+    // ============================================
+    // City Metadata - Only cities with population data
+    // ============================================
+    const cities = {
+      '440300': { nameZh: '深圳市', nameEn: 'Shenzhen', color: '#9B59B6' },
+      '440100': { nameZh: '广州市', nameEn: 'Guangzhou', color: '#2ECC71' },
+      '510100': { nameZh: '成都市', nameEn: 'Chengdu', color: '#F39C12' },
+      '330100': { nameZh: '杭州市', nameEn: 'Hangzhou', color: '#E91E63' },
+      '110000': { nameZh: '北京市', nameEn: 'Beijing', color: '#E74C3C' },
+      '310000': { nameZh: '上海市', nameEn: 'Shanghai', color: '#3498DB' }
+    };
+
+    function cityName(cityCode) {
+      const info = cities[cityCode];
+      if (!info) return cityCode;
+      return state.language === 'zh' ? info.nameZh : info.nameEn;
+    }
+
+    const levelDefs = [
+      { zh: '极度失调', key: 'severelyImbalanced', class: 'level-1' },
+      { zh: '中度失调', key: 'moderatelyImbalanced', class: 'level-2' },
+      { zh: '勉强协调', key: 'barelyCoordinated', class: 'level-3' },
+      { zh: '良好协调', key: 'wellCoordinated', class: 'level-4' },
+      { zh: '优质协调', key: 'highQualityCoordination', class: 'level-5' }
+    ];
+
+    const cityCoords = {
+      '440300': [22.54, 114.06],
+      '440100': [23.13, 113.26],
+      '510100': [30.67, 104.07],
+      '330100': [30.26, 120.19],
+      '310000': [31.23, 121.47],
+      '110000': [39.90, 116.40]
+    };
+
+    const cityAutoFitZoom = {
+      '440300': 12,
+      '440100': 12,
+      '510100': 12,
+      '330100': 12,
+      '310000': 12,
+      '110000': 11
+    };
+
+    // Available years for each city (based on available population data)
+    const cityYears = {
+      '440300': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      '440100': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      '510100': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      '330100': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      '310000': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+      '110000': [2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023]
+    };
+
+    // ============================================
+    // Coupling Colors
+    // ============================================
+    function getCouplingColor(d) {
+      if (d >= 0.8) return '#06b6d4';
+      if (d >= 0.6) return '#22c55e';
+      if (d >= 0.4) return '#eab308';
+      if (d >= 0.2) return '#f97316';
+      return '#dc2626';
+    }
+
+    function getLevelClass(d) {
+      if (d >= 0.8) return 'level-5';
+      if (d >= 0.6) return 'level-4';
+      if (d >= 0.4) return 'level-3';
+      if (d >= 0.2) return 'level-2';
+      return 'level-1';
+    }
+
+    function getLevelName(d) {
+      if (d >= 0.8) return t('highQualityCoordination');
+      if (d >= 0.6) return t('wellCoordinated');
+      if (d >= 0.4) return t('barelyCoordinated');
+      if (d >= 0.2) return t('moderatelyImbalanced');
+      return t('severelyImbalanced');
+    }
+
+    function applyTranslations() {
+      document.documentElement.lang = state.language === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('appTitle');
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+      });
+      document.querySelectorAll('.language-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === state.language);
+      });
+      document.getElementById('currentCityName').textContent = cityName(state.currentCity);
+      renderCityGrid();
+      updateTimelineEvents();
+      if (state.currentSummary) {
+        updateMetrics(state.currentSummary);
+      } else {
+        document.getElementById('u1Subtitle').textContent = t('noData');
+        document.getElementById('u2Subtitle').textContent = t('noData');
+        document.getElementById('dSubtitle').textContent = t('noData');
+      }
+      updateLevelDistribution(state.currentLevelCounts || {});
+      if (state.selectedStationProps) {
+        selectStation(state.selectedStationId, state.selectedStationProps, state.selectedStationGeometry);
+      } else {
+        document.getElementById('stationName').textContent = t('stationCatchmentInfo');
+        document.getElementById('regionalStationName').textContent = t('noStationSelected');
+        document.getElementById('regionalGauge').innerHTML = emptyRegionalDashboardHtml();
+      }
+      refreshStationAreaTooltips();
+      updateChart();
+    }
+
+    function setLanguage(language) {
+      if (!i18n[language] || language === state.language) return;
+      state.language = language;
+      applyTranslations();
+    }
+
+    // ============================================
+    // Initialize
+    // ============================================
+    async function init() {
+      applyTranslations();
+      initMap();
+      initTimeline();
+      initChart();
+      renderCityGrid();
+      updateTimelineYears();
+      await loadData({ showOverlay: true, fitMap: true, animate: false });
+    }
+
+    function initMap() {
+      console.log('Initializing map...');
+
+      state.map = L.map('map', {
+        center: cityCoords[state.currentCity],
+        zoom: 12,
+        zoomControl: true,
+        preferCanvas: true
+      });
+
+      state.map.createPane('realMapPane');
+      state.map.getPane('realMapPane').style.zIndex = 180;
+      state.map.createPane('baseRoadPane');
+      state.map.getPane('baseRoadPane').style.zIndex = 250;
+      state.roadRenderer = L.canvas({ pane: 'baseRoadPane', padding: 0.5 });
+      state.map.createPane('populationPane');
+      state.map.getPane('populationPane').style.zIndex = 360;
+      state.map.createPane('stationAreaPane');
+      state.map.getPane('stationAreaPane').style.zIndex = 430;
+      state.map.createPane('metroLinePane');
+      state.map.getPane('metroLinePane').style.zIndex = 520;
+      state.map.createPane('metroStationPane');
+      state.map.getPane('metroStationPane').style.zIndex = 530;
+      state.stationLayers.realMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        pane: 'realMapPane',
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+        opacity: 0.78
+      });
+
+      // Force map to resize
+      setTimeout(() => {
+        state.map.invalidateSize();
+        console.log('Map size invalidated');
+      }, 100);
+
+      console.log('Map initialized');
+    }
+
+    function initTimeline() {
+      updateTimelineYears();
+    }
+
+    function updateTimelineYears() {
+      const years = cityYears[state.currentCity] || [state.currentYear];
+      const timelineYears = document.getElementById('timelineYears');
+
+      timelineYears.innerHTML = years.map(y =>
+        `<span class="timeline-year ${y === state.currentYear ? 'active' : ''}" data-year="${y}">${y}</span>`
+      ).join('');
+
+      // Click on year labels
+      timelineYears.querySelectorAll('.timeline-year').forEach(el => {
+        el.addEventListener('click', () => {
+          const year = parseInt(el.dataset.year);
+          setCurrentYear(year);
+        });
+      });
+
+      // Slider interaction - click anywhere on slider to jump to that position
+      const slider = document.getElementById('timelineSlider');
+      slider.onclick = function(e) {
+        const rect = slider.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percent = x / rect.width;
+        const idx = Math.round(percent * (years.length - 1));
+        setCurrentYear(years[Math.max(0, Math.min(idx, years.length - 1))]);
+      };
+
+      // Handle drag
+      const handle = document.getElementById('timelineHandle');
+      let isDragging = false;
+
+      handle.onmousedown = function(e) {
+        isDragging = true;
+        e.preventDefault();
+      };
+
+      document.onmousemove = function(e) {
+        if (!isDragging) return;
+        const rect = slider.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const percent = x / rect.width;
+        const idx = Math.round(percent * (years.length - 1));
+        setCurrentYear(years[Math.max(0, Math.min(idx, years.length - 1))]);
+      };
+
+      document.onmouseup = function() {
+        isDragging = false;
+      };
+
+      updateSliderUI();
+      updateTimelineEvents();
+    }
+
+    function yearPercent(year) {
+      const years = cityYears[state.currentCity] || [state.currentYear];
+      const minYear = Math.min(...years);
+      const maxYear = Math.max(...years);
+      if (maxYear === minYear) return 0;
+      return Math.max(0, Math.min(100, (year - minYear) / (maxYear - minYear) * 100));
+    }
+
+    function buildTimelineEvents() {
+      const data = state.timelineData || [];
+      const events = [...(planningEvents[state.currentCity] || [])];
+
+      const firstOpen = data.find(d => (d.stationCount || 0) > 0);
+      if (firstOpen) {
+        events.push({ year: firstOpen.year, labelKey: 'firstLineOpened', type: 'rail' });
+      }
+
+      const jumps = [];
+      for (let i = 1; i < data.length; i++) {
+        const delta = (data[i].stationCount || 0) - (data[i - 1].stationCount || 0);
+        if (delta >= 20) {
+          jumps.push({ year: data[i].year, delta });
+        }
+      }
+      jumps
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 2)
+        .forEach((j, idx) => {
+          events.push({
+            year: j.year,
+            labelKey: idx === 0 ? 'railNetworkLeap' : 'concentratedLineOpening',
+            type: idx === 0 ? 'major' : 'rail'
+          });
+        });
+
+      return events
+        .filter(e => cityYears[state.currentCity].includes(e.year))
+        .sort((a, b) => a.year - b.year);
+    }
+
+    function updateTimelineEvents() {
+      const container = document.getElementById('timelineEvents');
+      if (!container) return;
+      const events = buildTimelineEvents();
+      container.innerHTML = events.map(e => `
+        <div class="timeline-event ${e.type}" style="left: ${yearPercent(e.year)}%;">
+          <strong>${e.year}</strong><br/>${t(e.labelKey)}
+        </div>
+      `).join('');
+    }
+
+    function initChart() {
+      state.chart = echarts.init(document.getElementById('chart'));
+      state.timelineChart = echarts.init(document.getElementById('timelineChart'));
+      state.chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { top: 10, right: 10, bottom: 25, left: 40 },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#111620',
+          borderColor: '#2a3444',
+          textStyle: { color: '#e8eaed', fontSize: 11 }
+        },
+        xAxis: {
+          type: 'category',
+          data: [],
+          axisLine: { lineStyle: { color: '#2a3444' } },
+          axisLabel: { color: '#5a6374', fontSize: 10 }
+        },
+        yAxis: {
+          type: 'value',
+          min: 0,
+          max: 1,
+          axisLine: { lineStyle: { color: '#2a3444' } },
+          axisLabel: { color: '#5a6374', fontSize: 10, formatter: v => v.toFixed(1) },
+          splitLine: { lineStyle: { color: '#1a2130' } }
+        },
+        series: [
+          {
+            name: 'U1',
+            type: 'line',
+            smooth: true,
+            data: [],
+            lineStyle: { color: '#00d4ff', width: 2 },
+            itemStyle: { color: '#00d4ff' },
+            areaStyle: { color: 'rgba(0, 212, 255, 0.1)' }
+          },
+          {
+            name: 'U2',
+            type: 'line',
+            smooth: true,
+            data: [],
+            lineStyle: { color: '#ff6b9d', width: 2 },
+            itemStyle: { color: '#ff6b9d' },
+            areaStyle: { color: 'rgba(255, 107, 157, 0.1)' }
+          },
+          {
+            name: 'D',
+            type: 'line',
+            smooth: true,
+            data: [],
+            lineStyle: { color: '#a855f7', width: 2 },
+            itemStyle: { color: '#a855f7' },
+            areaStyle: { color: 'rgba(168, 85, 247, 0.1)' }
+          }
+        ]
+      });
+
+      window.addEventListener('resize', () => {
+        state.chart && state.chart.resize();
+        state.timelineChart && state.timelineChart.resize();
+      });
+    }
+
+    function renderCityGrid() {
+      const grid = document.getElementById('cityGrid');
+      grid.innerHTML = Object.entries(cities).map(([code, info]) => `
+        <button class="city-btn ${code === state.currentCity ? 'active' : ''}"
+                data-city="${code}"
+                onclick="selectCity('${code}')">
+          ${cityName(code)}
+        </button>
+      `).join('');
+    }
+
+    // ============================================
+    // Data Paths - 根据服务器启动位置自动检测
+    // ============================================
+    // 如果从 frontend/ 目录启动，使用这些路径（所有数据文件放在 frontend/ 目录）
+    const DATA_BASE = './';
+    const DATA_DIR = './';
+
+    async function fetchJSON(url) {
+      console.log('Fetching:', url);
+      if (state.dataCache.has(url)) {
+        return state.dataCache.get(url);
+      }
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        state.dataCache.set(url, data);
+        return data;
+      } catch (err) {
+        console.warn('Fetch failed for', url, err.message);
+        return null;
+      }
+    }
+
+    function cloneData(data) {
+      return data ? JSON.parse(JSON.stringify(data)) : data;
+    }
+
+    function fadeRemoveLayer(layer, duration = 260) {
+      if (!layer || !state.map) return;
+      try {
+        layer.eachLayer?.(child => {
+          const el = child.getElement?.();
+          if (el) {
+            el.style.transition = `opacity ${duration}ms ease`;
+            el.style.opacity = '0';
+          }
+        });
+      } catch (err) {
+        console.warn('Layer fade failed:', err);
+      }
+      setTimeout(() => {
+        if (state.map && state.map.hasLayer(layer)) {
+          state.map.removeLayer(layer);
+        }
+      }, duration);
+    }
+
+    function fadeInLayer(layer, duration = 420) {
+      if (!layer) return;
+      requestAnimationFrame(() => {
+        layer.eachLayer?.(child => {
+          const el = child.getElement?.();
+          if (!el) return;
+          el.style.opacity = '0';
+          el.style.transition = `opacity ${duration}ms ease, fill-opacity ${duration}ms ease`;
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+          });
+        });
+      });
+    }
+
+    function growLineLayer(layer, duration = 700) {
+      if (!layer) return;
+      requestAnimationFrame(() => {
+        layer.eachLayer?.(child => {
+          const el = child.getElement?.();
+          if (!el || typeof el.getTotalLength !== 'function') return;
+          let length = 0;
+          try {
+            length = el.getTotalLength();
+          } catch {
+            return;
+          }
+          if (!length) return;
+          el.style.transition = 'none';
+          el.style.strokeDasharray = `${length}`;
+          el.style.strokeDashoffset = `${length}`;
+          el.getBoundingClientRect();
+          el.style.transition = `stroke-dashoffset ${duration}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${duration}ms ease`;
+          el.style.strokeDashoffset = '0';
+        });
+      });
+    }
+
+    // ============================================
+    // Data Loading
+    // ============================================
+    async function loadData(options = {}) {
+      const { showOverlay = false, fitMap = false, animate = true } = options;
+      const token = ++state.loadToken;
+      if (showOverlay) showLoading(true);
+      try {
+        await loadBaseRoads();
+        // Load metro lines first to get open_year data for filtering
+        await loadMetroLines({ animate });
+        if (token !== state.loadToken) return;
+        // Then load station areas and summary
+        await Promise.all([
+          loadPopulationLayer({ token }),
+          loadStationAreas({ fitMap, animate, token }),
+          loadSummary({ token })
+        ]);
+        if (token !== state.loadToken) return;
+        // Timeline data needed for chart
+        await loadTimelineData();
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      }
+      if (showOverlay) showLoading(false);
+    }
+
+    async function loadBaseRoads() {
+      const city = state.currentCity;
+      if (!state.layers.road) {
+        clearBaseRoads();
+        return;
+      }
+
+      if (state.loadedBaseRoadCity !== city) {
+        clearBaseRoads();
+        state.loadedBaseRoadCity = city;
+      }
+      await updateRoadLevel();
+    }
+
+    async function loadStationAreas(options = {}) {
+      const { fitMap = false, animate = true, token = state.loadToken } = options;
+      const city = state.currentCity;
+      const year = state.currentYear;
+
+      // Load station areas (geometry, GeoJSON format) and coupling data (custom format)
+      let areasData = cloneData(await fetchJSON(`${DATA_BASE}station_areas_${city}_${year}.json`));
+      let couplingData = cloneData(await fetchJSON(`${DATA_BASE}station_coupling_${city}_${year}.json`));
+      if (token !== state.loadToken) return;
+
+      // Fallback: try base city file (no year)
+      if (!areasData) {
+        areasData = cloneData(await fetchJSON(`${DATA_BASE}station_areas_${city}.json`));
+      }
+      if (!couplingData) {
+        couplingData = cloneData(await fetchJSON(`${DATA_BASE}station_coupling_${city}.json`));
+      }
+
+      // Fallback: try any available year for this city
+      if (!areasData || !couplingData) {
+        const availableYears = [2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2005, 2000];
+        for (const y of availableYears) {
+          if (!areasData) areasData = cloneData(await fetchJSON(`${DATA_BASE}station_areas_${city}_${y}.json`));
+          if (!couplingData) couplingData = cloneData(await fetchJSON(`${DATA_BASE}station_coupling_${city}_${y}.json`));
+          if (areasData && couplingData) {
+            console.log('Loaded data for fallback year:', y);
+            break;
+          }
+        }
+      }
+      if (token !== state.loadToken) return;
+
+      if (!areasData || !areasData.features || areasData.features.length === 0) {
+        console.warn('No station area data for', city, year);
+        return;
+      }
+
+      // Filter station areas by open_year (match metro stations filtering)
+      const yearNum = parseInt(year);
+      const metroData = state.metroData;
+      if (metroData && metroData.stations) {
+        const visibleStationIds = new Set(
+          metroData.stations
+            .filter(s => s.open_year && s.open_year <= yearNum)
+            .map(s => s.station_id)
+        );
+        areasData.features = areasData.features.filter(f =>
+          visibleStationIds.has(f.properties.station_id)
+        );
+        console.log('Filtered to', areasData.features.length, 'visible station areas for year', year);
+      }
+
+      // couplingData format: { cityCode, year, stations: [...] }
+      // Create lookup by station_id
+      const couplingByStation = {};
+      if (couplingData && couplingData.stations) {
+        couplingData.stations.forEach(s => {
+          couplingByStation[s.station_id] = s;
+        });
+      }
+
+      // Merge D, U1, U2 into areas features
+      areasData.features.forEach(f => {
+        const sid = f.properties.station_id;
+        const coupling = couplingByStation[sid] || {};
+        f.properties.D = coupling.D !== undefined ? coupling.D : 0.5;
+        f.properties.U1 = coupling.U1 !== undefined ? coupling.U1 : null;
+        f.properties.U2 = coupling.U2 !== undefined ? coupling.U2 : null;
+        f.properties.C = coupling.C !== undefined ? coupling.C : null;
+        f.properties.T = coupling.T !== undefined ? coupling.T : null;
+        f.properties.level = coupling.level || '未知';
+      });
+
+      console.log('Station areas loaded:', areasData.features.length, 'features with coupling data');
+      renderStationAreas(areasData, { fitMap, animate });
+    }
+
+    async function loadMetroLines(options = {}) {
+      const city = state.currentCity;
+
+      try {
+        if (state.loadedMetroCity !== city || !state.metroData) {
+          const data = await fetchJSON(`${DATA_DIR}metro_network.json`);
+          if (data && data[city]) {
+            state.metroData = data[city];
+            state.loadedMetroCity = city;
+          }
+        }
+        if (state.metroData) {
+          // Cache metro data in state for year-based filtering
+          renderMetroLines(state.currentYear, options);
+        }
+      } catch (err) {
+        console.warn('Could not load metro lines:', err);
+      }
+    }
+
+    function renderMetroLines(year, options = {}) {
+      const { animate = true } = options;
+      if (!state.metroData) return;
+
+      if (state.stationLayers.lines) {
+        fadeRemoveLayer(state.stationLayers.lines);
+        state.stationLayers.lines = null;
+      }
+      if (state.stationLayers.stations) {
+        fadeRemoveLayer(state.stationLayers.stations);
+        state.stationLayers.stations = null;
+      }
+
+      const yearNum = parseInt(year);
+      const allLines = state.metroData.lines || [];
+      const allStations = state.metroData.stations || [];
+
+      // Filter lines by open_year. A single named metro line can have multiple
+      // geometry parts or branches, so only remove exact geometry duplicates.
+      const visibleLines = allLines.filter(l => l.open_year && l.open_year <= yearNum);
+      const seenLineGeometries = new Set();
+      const renderedLines = visibleLines.filter(l => {
+        const coords = l.coordinates || [];
+        const first = coords[0] || [];
+        const last = coords[coords.length - 1] || [];
+        const signature = [
+          l.name || '',
+          l.open_year || '',
+          coords.length,
+          first[0], first[1],
+          last[0], last[1]
+        ].join('|');
+        if (seenLineGeometries.has(signature)) return false;
+        seenLineGeometries.add(signature);
+        return true;
+      });
+
+      // Filter stations by open_year
+      const visibleStations = allStations.filter(s => s.open_year && s.open_year <= yearNum);
+
+      if (!state.layers.metroLines) return;
+
+      // Render lines
+      const lineFeatures = renderedLines.map(line => ({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: line.coordinates || [] },
+        properties: { name: line.name || '', color: line.color || '#00bcd4' }
+      }));
+
+      state.stationLayers.lines = L.geoJSON(
+        { type: 'FeatureCollection', features: lineFeatures },
+        {
+          pane: 'metroLinePane',
+          style: f => ({
+            color: f.properties.color || '#00bcd4',
+            weight: 4,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round'
+          }),
+          interactive: false
+        }
+      ).addTo(state.map);
+      if (animate) growLineLayer(state.stationLayers.lines);
+
+      // Render station points
+      if (state.layers.metroStations !== false) {
+        const stationFeatures = visibleStations.map(s => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+          properties: {
+            station_id: s.station_id || '',
+            station_name: s.station_name || s.name || '',
+            name: s.station_name || s.name || '',
+            line: s.line_name || ''
+          }
+        }));
+
+        state.stationLayers.stations = L.geoJSON(
+          { type: 'FeatureCollection', features: stationFeatures },
+          {
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+              pane: 'metroStationPane',
+              radius: 4, color: '#fff', weight: 1.5, fillColor: '#00bcd4', fillOpacity: 0.9
+            }),
+            onEachFeature: (feature, layer) => {
+              const props = feature.properties || {};
+              layer.on('click', () => {
+                const record = state.stationAreaById.get(props.station_id) ||
+                  state.stationAreaByName.get(props.station_name);
+                if (record) {
+                  selectStation(record.props.station_id, record.props, record.geometry);
+                }
+              });
+              layer.on('mouseover', () => layer.setStyle({ radius: 6, fillOpacity: 1 }));
+              layer.on('mouseout', () => layer.setStyle({ radius: 4, fillOpacity: 0.9 }));
+            },
+            style: () => ({}),
+            interactive: true
+          }
+        ).addTo(state.map);
+        if (animate) fadeInLayer(state.stationLayers.stations);
+      }
+    }
+
+    function clearBaseRoads() {
+      if (state.stationLayers.baseRoads) {
+        fadeRemoveLayer(state.stationLayers.baseRoads);
+        state.stationLayers.baseRoads = null;
+      }
+      state.currentRoadLevel = null;
+      state.roadLevelLayers = new Map();
+      state.loadedBaseRoadCity = null;
+    }
+
+    function getRoadLevelForZoom() {
+      return 'high';
+    }
+
+    function createRoadLevelLayer(data) {
+      return L.geoJSON(data, {
+        pane: 'baseRoadPane',
+        renderer: state.roadRenderer,
+        interactive: false,
+        style: () => ({
+          color: '#4dd7ff',
+          weight: 0.8,
+          opacity: 0.46,
+          lineCap: 'round',
+          lineJoin: 'round'
+        })
+      });
+    }
+
+    async function updateRoadLevel() {
+      if (!state.layers.road || !state.map) return;
+      const city = state.currentCity;
+      const level = getRoadLevelForZoom();
+      const cacheKey = `${city}_${level}`;
+
+      if (state.currentRoadLevel === cacheKey && state.stationLayers.baseRoads) return;
+
+      let nextLayer = state.roadLevelLayers.get(cacheKey);
+      if (!nextLayer) {
+        const data = await fetchJSON(`${DATA_DIR}road_levels/${city}/roads_${level}.json`);
+        if (!state.layers.road || city !== state.currentCity || level !== getRoadLevelForZoom()) return;
+        if (!data || !data.features || data.features.length === 0) return;
+        nextLayer = createRoadLevelLayer(data);
+        state.roadLevelLayers.set(cacheKey, nextLayer);
+      }
+
+      if (state.stationLayers.baseRoads && state.map.hasLayer(state.stationLayers.baseRoads)) {
+        fadeRemoveLayer(state.stationLayers.baseRoads, 180);
+      }
+      state.stationLayers.baseRoads = nextLayer;
+      state.currentRoadLevel = cacheKey;
+      if (!state.map.hasLayer(nextLayer)) {
+        nextLayer.addTo(state.map);
+        fadeInLayer(nextLayer, 220);
+      }
+    }
+
+    async function loadSummary(options = {}) {
+      const { token = state.loadToken } = options;
+      const city = state.currentCity;
+      const year = state.currentYear;
+
+      // First try to load summary file
+      let summary = await fetchJSON(`${DATA_BASE}summary_${city}_${year}.json`);
+      if (token !== state.loadToken) return;
+
+      // Fallback: try available years
+      if (!summary) {
+        const years = [2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000];
+        for (const y of years) {
+          summary = await fetchJSON(`${DATA_BASE}summary_${city}_${y}.json`);
+          if (token !== state.loadToken) return;
+          if (summary) {
+            console.log('Loaded summary for fallback year:', y);
+            break;
+          }
+        }
+      }
+
+      // If no summary, compute from coupling data
+      if (!summary) {
+        console.log('No summary file, computing from coupling data...');
+        const couplingData = await fetchJSON(`${DATA_BASE}station_coupling_${city}_${year}.json`);
+        if (token !== state.loadToken) return;
+        if (couplingData && couplingData.stations) {
+          const stations = couplingData.stations;
+          const validStations = stations.filter(s => s.U1 > 0 || s.U2 > 0);
+          const avgU1 = validStations.length > 0
+            ? validStations.reduce((s, st) => s + (st.U1 || 0), 0) / validStations.length
+            : 0;
+          const avgU2 = validStations.length > 0
+            ? validStations.reduce((s, st) => s + (st.U2 || 0), 0) / validStations.length
+            : 0;
+          const avgD = validStations.length > 0
+            ? validStations.reduce((s, st) => s + (st.D || 0), 0) / validStations.length
+            : 0;
+
+          summary = {
+            city: city,
+            year: year,
+            average_U1: avgU1,
+            average_U2: avgU2,
+            average_D: avgD,
+            station_count: stations.length,
+            level_counts: {}
+          };
+        }
+      }
+
+      if (summary) {
+        if (token !== state.loadToken) return;
+        console.log('Summary loaded:', summary);
+        state.currentSummary = summary;
+        state.currentLevelCounts = summary.level_counts || {};
+        updateMetrics(summary);
+        updateLevelDistribution(summary.level_counts || {});
+      }
+
+      // Load timeline data
+      await loadTimelineData();
+      updateChart();
+    }
+
+    async function loadTimelineData() {
+      try {
+        const data = await fetchJSON(`${DATA_BASE}city_timeline.json`);
+        if (data && data[state.currentCity]) {
+          state.timelineData = data[state.currentCity].timeline || [];
+          updateChart();
+        }
+      } catch (err) {
+        console.warn('Could not load timeline:', err);
+      }
+    }
+
+    // ============================================
+    // Rendering
+    // ============================================
+    function clamp01(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return 0;
+      return Math.max(0, Math.min(1, n));
+    }
+
+    function polarPoint(cx, cy, r, angleDeg) {
+      const rad = (angleDeg - 90) * Math.PI / 180;
+      return {
+        x: cx + r * Math.cos(rad),
+        y: cy + r * Math.sin(rad)
+      };
+    }
+
+    function arcPath(cx, cy, r, startAngle, endAngle) {
+      const start = polarPoint(cx, cy, r, startAngle);
+      const end = polarPoint(cx, cy, r, endAngle);
+      const largeArc = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+      return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+    }
+
+    function getGeometryRing(geometry) {
+      if (!geometry) return null;
+      if (geometry.type === 'Polygon') return geometry.coordinates?.[0] || null;
+      if (geometry.type === 'MultiPolygon') {
+        let best = null;
+        let bestArea = -Infinity;
+        geometry.coordinates.forEach(poly => {
+          const ring = poly?.[0];
+          if (!ring || ring.length < 3) return;
+          const xs = ring.map(p => p[0]);
+          const ys = ring.map(p => p[1]);
+          const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+          if (area > bestArea) {
+            bestArea = area;
+            best = ring;
+          }
+        });
+        return best;
+      }
+      return null;
+    }
+
+    const REGIONAL_GAUGE_CENTER = { x: 150, y: 157 };
+    const REGIONAL_GAUGE_RADIUS = 92;
+    const STATION_WALK_RADIUS_M = 1260;
+
+    function stationAreaShape(geometry) {
+      const ring = getGeometryRing(geometry);
+      if (!ring || ring.length < 3) {
+        return {
+          path: 'M 150 142 L 166 157 L 150 172 L 134 157 Z',
+          ring: null,
+          project: () => REGIONAL_GAUGE_CENTER
+        };
+      }
+
+      const xs = ring.map(p => p[0]);
+      const ys = ring.map(p => p[1]);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const metersPerDegLat = 111320;
+      const metersPerDegLon = Math.max(111320 * Math.cos(cy * Math.PI / 180), 1e-6);
+      const meterToSvg = REGIONAL_GAUGE_RADIUS / STATION_WALK_RADIUS_M;
+
+      const project = p => ({
+        x: REGIONAL_GAUGE_CENTER.x + (p[0] - cx) * metersPerDegLon * meterToSvg,
+        y: REGIONAL_GAUGE_CENTER.y - (p[1] - cy) * metersPerDegLat * meterToSvg
+      });
+
+      const path = ring.map((p, idx) => {
+        const { x, y } = project(p);
+        return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+      }).join(' ') + ' Z';
+
+      return {
+        path,
+        ring,
+        bounds: { minX, maxX, minY, maxY },
+        project
+      };
+    }
+
+    function stationAreaPath(geometry) {
+      return stationAreaShape(geometry).path;
+    }
+
+    function pointInRing(point, ring) {
+      if (!ring || !point) return false;
+      const x = point[0];
+      const y = point[1];
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1];
+        const xj = ring[j][0], yj = ring[j][1];
+        const intersects = ((yi > y) !== (yj > y)) &&
+          (x < (xj - xi) * (y - yi) / ((yj - yi) || 1e-12) + xi);
+        if (intersects) inside = !inside;
+      }
+      return inside;
+    }
+
+    function getStationLineNames(props) {
+      return String(props.line_name || props.line || '')
+        .split('/')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function lineMatchesStation(lineName, stationLineNames) {
+      return stationLineNames.some(name => lineName === name || lineName.includes(name) || name.includes(lineName));
+    }
+
+    function coveredMetroLinePaths(props, shape) {
+      const stationLineNames = getStationLineNames(props);
+      const yearNum = parseInt(state.currentYear);
+      const lines = (state.metroData?.lines || []).filter(line =>
+        line.open_year && line.open_year <= yearNum &&
+        lineMatchesStation(line.name || '', stationLineNames)
+      );
+
+      const paths = [];
+      lines.forEach(line => {
+        const coords = line.coordinates || [];
+        let segment = [];
+        coords.forEach(coord => {
+          const inside = pointInRing(coord, shape.ring);
+          if (inside) {
+            const p = shape.project(coord);
+            segment.push([p.x, p.y]);
+          } else if (segment.length > 0) {
+            if (segment.length > 1) paths.push({ points: segment, color: line.color || '#00d4ff' });
+            segment = [];
+          }
+        });
+        if (segment.length > 1) paths.push({ points: segment, color: line.color || '#00d4ff' });
+      });
+
+      if (paths.length === 0 && lines.length > 0) {
+        paths.push({
+          points: [[106, 113], [194, 201]],
+          color: lines[0].color || '#00d4ff'
+        });
+      }
+
+      return paths.map(item => {
+        const dPath = item.points.map((p, idx) =>
+          `${idx === 0 ? 'M' : 'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`
+        ).join(' ');
+        return `<path d="${dPath}" fill="none" stroke="${item.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" clip-path="url(#stationAreaClip)"/>`;
+      }).join('');
+    }
+
+    function updateRegionalDashboard(props, geometry) {
+      const dashboard = document.getElementById('regionalDashboard');
+      const gauge = document.getElementById('regionalGauge');
+      const u1 = clamp01(props.U1);
+      const u2 = clamp01(props.U2);
+      const d = clamp01(props.D);
+      const levelName = getLevelName(d);
+      const stationName = props.station_name || props.name || t('unknownStation');
+      const previousGaugeValues = state.regionalGaugeValues || { u1: 0, u2: 0 };
+      const u1From = (previousGaugeValues.u1 * 100).toFixed(1);
+      const u2From = (previousGaugeValues.u2 * 100).toFixed(1);
+      const u1To = (u1 * 100).toFixed(1);
+      const u2To = (u2 * 100).toFixed(1);
+      const areaColor = getCouplingColor(d);
+      const shape = stationAreaShape(geometry);
+      const areaPath = shape.path;
+      const linePaths = coveredMetroLinePaths(props, shape);
+      state.regionalGaugeValues = { u1, u2 };
+
+      dashboard.classList.add('visible');
+      document.getElementById('regionalStationName').textContent = stationName;
+      gauge.innerHTML = `
+        <svg class="regional-gauge" viewBox="0 0 300 300" role="img" aria-label="${stationName} station area coupling dashboard">
+          <defs>
+            <filter id="regionalGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <clipPath id="stationAreaClip">
+              <path d="${areaPath}"/>
+            </clipPath>
+          </defs>
+          <text x="150" y="24" text-anchor="middle" fill="#e8eaed" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">CCD ${d.toFixed(2)}</text>
+          <text x="150" y="44" text-anchor="middle" fill="#8b95a5" font-size="13" font-weight="600">${levelName}</text>
+          <circle cx="150" cy="157" r="92" fill="rgba(34,197,94,0.18)" stroke="rgba(34,197,94,0.26)" stroke-width="1.2"/>
+          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(0,212,255,0.14)" stroke-width="16" stroke-linecap="round"/>
+          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(168,85,247,0.14)" stroke-width="16" stroke-linecap="round"/>
+          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(0,212,255,0.78)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u1To} 100" filter="url(#regionalGlow)">
+            <animate attributeName="stroke-dasharray" from="${u1From} 100" to="${u1To} 100" dur="0.55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+          </path>
+          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(168,85,247,0.92)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u2To} 100" filter="url(#regionalGlow)">
+            <animate attributeName="stroke-dasharray" from="${u2From} 100" to="${u2To} 100" dur="0.55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+          </path>
+          <path d="${areaPath}" fill="${areaColor}" fill-opacity="0.58" stroke="rgba(232,234,237,0.7)" stroke-width="1.7"/>
+          ${linePaths}
+          <circle cx="150" cy="157" r="12" fill="#0a0e14" stroke="#ffffff" stroke-width="4"/>
+          <text x="16" y="292" fill="var(--accent-transit)" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">U1 ${u1.toFixed(2)}</text>
+          <text x="214" y="292" fill="var(--accent-coupling)" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">U2 ${u2.toFixed(2)}</text>
+        </svg>
+      `;
+    }
+
+    function renderStationAreas(data, options = {}) {
+      const { fitMap = false, animate = true } = options;
+      console.log('Rendering station areas, features:', data.features ? data.features.length : 0);
+
+      // Clear existing layers
+      if (state.stationLayers.areas) {
+        fadeRemoveLayer(state.stationLayers.areas);
+        state.stationLayers.areas = null;
+      }
+
+      const features = data.features || [];
+      state.stationAreaById = new Map();
+      state.stationAreaByName = new Map();
+
+      if (features.length === 0) {
+        console.warn('No features to render');
+        return;
+      }
+
+      features.forEach(f => {
+        const props = f.properties || {};
+        const record = { props, geometry: f.geometry };
+        if (props.station_id) state.stationAreaById.set(props.station_id, record);
+        if (props.station_name) state.stationAreaByName.set(props.station_name, record);
+      });
+
+      if (!state.layers.stationArea) {
+        console.log('Station area layer is disabled');
+        return;
+      }
+
+      // Create GeoJSON structure
+      const geojson = {
+        type: 'FeatureCollection',
+        features: features.map(f => ({
+          type: 'Feature',
+          geometry: f.geometry,
+          properties: f.properties || {}
+        }))
+      };
+
+      console.log('Creating GeoJSON layer with', features.length, 'features');
+
+      state.stationLayers.areas = L.geoJSON(geojson, {
+        pane: 'stationAreaPane',
+        style: (feature) => {
+          const d = feature.properties.D || 0.5;
+          const color = getCouplingColor(d);
+          return {
+            fillColor: color,
+            fillOpacity: 0.5,
+            color: color,
+            weight: 2,
+            opacity: 1
+          };
+        },
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties;
+          layer.bindTooltip(stationTooltipContent(props), { sticky: true });
+
+          layer.on('click', () => {
+            selectStation(props.station_id, props, feature.geometry);
+          });
+
+          layer.on('mouseover', () => {
+            layer.setStyle({ fillOpacity: 0.8, weight: 3 });
+          });
+
+          layer.on('mouseout', () => {
+            layer.setStyle({ fillOpacity: 0.5, weight: 2 });
+          });
+        }
+      }).addTo(state.map);
+      if (animate) fadeInLayer(state.stationLayers.areas);
+
+      if (fitMap || !state.hasFittedMap) {
+        const bounds = state.stationLayers.areas.getBounds();
+        console.log('GeoJSON bounds:', bounds);
+        if (bounds.isValid()) {
+          const targetZoom = cityAutoFitZoom[state.currentCity] || 11;
+          state.map.setView(cityCoords[state.currentCity] || bounds.getCenter(), targetZoom, {
+            animate: true,
+            duration: 0.65
+          });
+          state.hasFittedMap = true;
+          console.log('Map fit to bounds');
+        } else if (cityCoords[state.currentCity]) {
+          state.map.setView(cityCoords[state.currentCity], cityAutoFitZoom[state.currentCity] || 11);
+          state.hasFittedMap = true;
+        }
+      }
+    }
+
+    function stationTooltipContent(props) {
+      const d = props.D;
+      const levelName = getLevelName(d);
+      const levelClass = getLevelClass(d);
+      return `
+        <strong>${props.station_name || t('unknownStation')}</strong><br/>
+        ${t('dValue')}: ${d ? d.toFixed(3) : '--'}<br/>
+        ${t('level')}: <span class="${levelClass}" style="padding: 1px 4px; border-radius: 3px;">${levelName}</span>
+      `;
+    }
+
+    function refreshStationAreaTooltips() {
+      if (!state.stationLayers.areas) return;
+      state.stationLayers.areas.eachLayer(layer => {
+        if (!layer.feature?.properties) return;
+        layer.unbindTooltip();
+        layer.bindTooltip(stationTooltipContent(layer.feature.properties), { sticky: true });
+      });
+    }
+
+    function updateMetrics(summary) {
+      console.log('Updating metrics with summary:', summary);
+
+      const u1 = summary.average_U1 || 0;
+      const u2 = summary.average_U2 || 0;
+      const d = summary.average_D || 0;
+
+      console.log('U1:', u1, 'U2:', u2, 'D:', d);
+
+      document.getElementById('u1Value').textContent = u1.toFixed(3);
+      document.getElementById('u2Value').textContent = u2.toFixed(3);
+      document.getElementById('dValue').textContent = d.toFixed(3);
+
+      const levelName = getLevelName(d);
+      const levelClass = getLevelClass(d);
+
+      document.getElementById('u1Subtitle').innerHTML = t('metroDevelopmentIndex');
+      document.getElementById('u2Subtitle').innerHTML = t('urbanizationDevelopmentIndex');
+      document.getElementById('dSubtitle').innerHTML = `${t('coordinationDevelopmentLevel')}: <span class="${levelClass}" style="padding: 2px 6px; border-radius: 3px;">${levelName}</span>`;
+    }
+
+    function interpolateColor(start, end, t) {
+      const a = start.match(/\w\w/g).map(v => parseInt(v, 16));
+      const b = end.match(/\w\w/g).map(v => parseInt(v, 16));
+      const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
+      return `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    function getPopulationColor(t) {
+      const value = Math.max(0, Math.min(1, t));
+      if (value < 0.5) {
+        return interpolateColor('ffb3d1', 'ff6b9d', value * 2);
+      }
+      return interpolateColor('ff6b9d', 'a855f7', (value - 0.5) * 2);
+    }
+
+    async function loadPopulationLayer(options = {}) {
+      const { token = state.loadToken } = options;
+      if (state.stationLayers.population) {
+        fadeRemoveLayer(state.stationLayers.population);
+        state.stationLayers.population = null;
+      }
+
+      if (!state.layers.population) return;
+
+      if (state.currentCity !== '440300') {
+        console.warn('Population heatmap is currently available for Shenzhen only.');
+        return;
+      }
+
+      const data = await fetchJSON(`${DATA_DIR}population_深圳市_${state.currentYear}.geojson`);
+      if (token !== state.loadToken) return;
+      if (!data || !data.features) {
+        console.warn('No Shenzhen population data for', state.currentYear);
+        return;
+      }
+
+      renderPopulationHeatmap(data);
+    }
+
+    function renderPopulationHeatmap(data) {
+      const points = (data.features || [])
+        .map(f => ({
+          coordinates: f.geometry?.coordinates,
+          population: Number(f.properties?.population || 0)
+        }))
+        .filter(p => p.coordinates && Number.isFinite(p.population) && p.population > 0);
+
+      if (!points.length) return;
+
+      const sorted = points.map(p => p.population).sort((a, b) => a - b);
+      const p95 = sorted[Math.floor(sorted.length * 0.95)] || sorted[sorted.length - 1] || 1;
+
+      state.stationLayers.population = L.layerGroup(
+        points.map(p => {
+          const normalized = Math.max(0, Math.min(1, p.population / p95));
+          return L.circleMarker([p.coordinates[1], p.coordinates[0]], {
+            pane: 'populationPane',
+            radius: 5 + normalized * 9,
+            stroke: false,
+            fillColor: getPopulationColor(normalized),
+            fillOpacity: 0.12 + normalized * 0.46,
+            interactive: false
+          });
+        })
+      ).addTo(state.map);
+      fadeInLayer(state.stationLayers.population, 360);
+    }
+
+    function updateLevelDistribution(counts) {
+      const container = document.getElementById('levelDistribution');
+      const levels = levelDefs.map(level => ({
+        name: t(level.key),
+        class: level.class,
+        count: counts[level.zh] || 0
+      }));
+
+      const total = levels.reduce((s, l) => s + l.count, 0) || 1;
+
+      container.innerHTML = levels.map(l => `
+        <div style="text-align: center; min-width: 50px;">
+          <div style="font-size: 16px; font-weight: 600;" class="${l.class}">${l.count}</div>
+          <div style="font-size: 9px; color: var(--text-muted);">${l.name}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateChart() {
+      if (!state.chart) return;
+
+      const data = state.timelineData;
+      const years = data.map(d => d.year);
+      const u1Data = data.map(d => d.U1 !== undefined ? d.U1 : null);
+      const u2Data = data.map(d => d.U2 !== undefined ? d.U2 : null);
+      const dData = data.map(d => d.D !== undefined ? d.D : null);
+
+      state.chart.setOption({
+        xAxis: { data: years },
+        series: [
+          { data: u1Data },
+          { data: u2Data },
+          { data: dData }
+        ]
+      });
+
+      if (state.timelineChart) {
+        state.timelineChart.setOption({
+          backgroundColor: 'transparent',
+          animation: false,
+          grid: { top: 6, right: 8, bottom: 18, left: 0 },
+          tooltip: {
+            trigger: 'axis',
+            confine: true,
+            axisPointer: {
+              type: 'line',
+              lineStyle: { color: '#c94b5d', width: 2 }
+            },
+            backgroundColor: 'rgba(255,255,255,0.94)',
+            borderColor: '#c94b5d',
+            borderWidth: 2,
+            textStyle: { color: '#111620', fontSize: 12 },
+            formatter: params => {
+              const year = params[0]?.axisValue ?? '';
+              const u1 = params.find(p => p.seriesName === 'U1')?.value;
+              const u2 = params.find(p => p.seriesName === 'U2')?.value;
+              const cd = params.find(p => p.seriesName === 'CD')?.value;
+              return `<strong>[${year}]</strong><br/>${t('u1Score')}: ${u1 ?? '--'}<br/>${t('u2Score')}: ${u2 ?? '--'}<br/>${t('cdScore')}: ${cd ?? '--'}`;
+            }
+          },
+          xAxis: {
+            type: 'category',
+            data: years,
+            boundaryGap: false,
+            axisTick: { show: false },
+            axisLine: { show: false },
+            axisLabel: {
+              color: '#718096',
+              fontFamily: 'JetBrains Mono',
+              fontSize: 10,
+              interval: 3
+            }
+          },
+          yAxis: {
+            type: 'value',
+            min: 0,
+            max: 1,
+            show: false
+          },
+          series: [
+            {
+              name: 'U1',
+              type: 'line',
+              stack: 'score',
+              smooth: true,
+              showSymbol: false,
+              data: u1Data,
+              lineStyle: { color: 'rgba(105,199,255,0.25)', width: 1 },
+              areaStyle: { color: 'rgba(105,199,255,0.34)' },
+              emphasis: { focus: 'series' }
+            },
+            {
+              name: 'U2',
+              type: 'line',
+              stack: 'score',
+              smooth: true,
+              showSymbol: false,
+              data: u2Data,
+              lineStyle: { color: 'rgba(255,122,169,0.35)', width: 1 },
+              areaStyle: { color: 'rgba(255,122,169,0.42)' },
+              emphasis: { focus: 'series' }
+            },
+            {
+              name: 'CD',
+              type: 'line',
+              smooth: true,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: dData,
+              lineStyle: { color: '#2736d9', width: 3 },
+              itemStyle: { color: '#7b61ff', borderColor: '#ffffff', borderWidth: 1 },
+              markLine: {
+                symbol: ['none', 'circle'],
+                symbolSize: [0, 10],
+                label: { show: false },
+                lineStyle: { color: 'rgba(255,255,255,0.9)', width: 2 },
+                data: [{ xAxis: state.currentYear }]
+              }
+            }
+          ]
+        });
+      }
+
+      updateTimelineEvents();
+    }
+
+    // ============================================
+    // Interactions
+    // ============================================
+    function selectCity(cityCode) {
+      if (cityCode === state.currentCity) return;
+
+      state.currentCity = cityCode;
+      state.selectedStationId = null;
+      state.selectedStationProps = null;
+      state.selectedStationGeometry = null;
+      state.regionalGaugeValues = null;
+      clearBaseRoads();
+      state.loadedMetroCity = null;
+      state.metroData = null;
+      state.hasFittedMap = false;
+
+      // Update UI
+      document.querySelectorAll('.city-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.city === cityCode);
+      });
+
+      document.getElementById('currentCityName').textContent = cityName(cityCode);
+
+      // Clear station selection
+      document.getElementById('stationInfo').classList.remove('visible');
+      document.getElementById('regionalDashboard').classList.remove('visible');
+      document.getElementById('regionalStationName').textContent = t('noStationSelected');
+      document.getElementById('regionalGauge').innerHTML = emptyRegionalDashboardHtml();
+
+      // Update timeline for this city
+      state.currentYear = cityYears[cityCode][cityYears[cityCode].length - 1]; // Default to latest year
+      updateTimelineYears();
+
+      // Pan map to city center
+      if (cityCoords[cityCode]) {
+        state.map.setView(cityCoords[cityCode], 12);
+      }
+
+      // Reload data
+      loadData({ showOverlay: true, fitMap: true, animate: true });
+    }
+
+    function selectStation(stationId, props, geometry = null) {
+      state.selectedStationId = stationId;
+      state.selectedStationProps = props;
+      state.selectedStationGeometry = geometry;
+
+      const stationInfo = document.getElementById('stationInfo');
+      stationInfo.classList.add('visible');
+      document.getElementById('stationName').textContent = props.station_name || t('unknownStation');
+
+      const d = props.D || 0;
+      const levelName = getLevelName(d);
+      const levelClass = getLevelClass(d);
+
+      document.getElementById('stationMeta').innerHTML = `
+        ${t('stationCatchmentId')}: ${stationId} |
+        ${t('dValue')}: ${d.toFixed(3)} |
+        <span class="${levelClass}" style="padding: 1px 4px; border-radius: 3px;">${levelName}</span>
+      `;
+
+      // Update metrics to show station-specific data
+      document.getElementById('u1Value').textContent = Number.isFinite(Number(props.U1)) ? Number(props.U1).toFixed(3) : '--';
+      document.getElementById('u2Value').textContent = Number.isFinite(Number(props.U2)) ? Number(props.U2).toFixed(3) : '--';
+      document.getElementById('dValue').textContent = d.toFixed(3);
+
+      const levelBadge = getLevelName(d);
+      document.getElementById('dSubtitle').innerHTML = `
+        ${t('coordinationDevelopmentLevel')}: <span class="${levelClass}" style="padding: 2px 6px; border-radius: 3px;">${levelBadge}</span>
+      `;
+
+      const record = geometry ? { props, geometry } :
+        (state.stationAreaById.get(stationId) || state.stationAreaByName.get(props.station_name));
+      updateRegionalDashboard(props, record?.geometry);
+
+      // Highlight selected station area
+      if (state.stationLayers.areas) {
+        state.stationLayers.areas.eachLayer(layer => {
+          if (layer.feature.properties.station_id === stationId) {
+            layer.setStyle({
+              fillOpacity: 0.7,
+              weight: 3,
+              color: '#ffffff'
+            });
+          } else {
+            state.stationLayers.areas.resetStyle(layer);
+          }
+        });
+      }
+    }
+
+    function toggleLayer(toggle) {
+      const layer = toggle.dataset.layer;
+      toggle.classList.toggle('active');
+      state.layers[layer] = toggle.classList.contains('active');
+
+      if (layer === 'realMap') {
+        if (state.layers.realMap) {
+          state.stationLayers.realMap.addTo(state.map);
+        } else {
+          state.map.removeLayer(state.stationLayers.realMap);
+        }
+        return;
+      }
+
+      if (layer === 'road') {
+        if (state.layers.road) {
+          loadBaseRoads();
+        } else {
+          clearBaseRoads();
+        }
+        return;
+      }
+
+      // Reload to reflect layer changes
+      loadData();
+    }
+
+    function setCurrentYear(year) {
+      if (year === state.currentYear) return;
+
+      state.currentYear = year;
+      state.selectedStationId = null;
+      state.selectedStationProps = null;
+      state.selectedStationGeometry = null;
+      state.regionalGaugeValues = null;
+      document.getElementById('currentYearBadge').textContent = year;
+      document.getElementById('currentYearLabel').textContent = year;
+      document.getElementById('stationInfo').classList.remove('visible');
+      document.getElementById('regionalDashboard').classList.remove('visible');
+      document.getElementById('regionalStationName').textContent = t('noStationSelected');
+      document.getElementById('regionalGauge').innerHTML = emptyRegionalDashboardHtml();
+
+      // Update timeline UI
+      document.querySelectorAll('.timeline-year').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.year) === year);
+      });
+
+      updateSliderUI();
+      updateChart();
+
+      // Reload year-specific data without resetting the map viewport.
+      loadData({ showOverlay: false, fitMap: false, animate: true });
+    }
+
+    function updateSliderUI() {
+      const years = cityYears[state.currentCity] || [state.currentYear];
+      const minYear = Math.min(...years);
+      const maxYear = Math.max(...years);
+      const range = maxYear - minYear;
+      const percent = range > 0 ? (state.currentYear - minYear) / range * 100 : 0;
+      document.getElementById('timelineProgress').style.width = percent + '%';
+      document.getElementById('timelineHandle').style.left = percent + '%';
+    }
+
+    function togglePlay() {
+      state.isPlaying = !state.isPlaying;
+      const btn = document.getElementById('playBtn');
+      const years = cityYears[state.currentCity] || [state.currentYear];
+
+      if (state.isPlaying) {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+        btn.classList.add('playing');
+        state.playInterval = setInterval(() => {
+          const idx = years.indexOf(state.currentYear);
+          let nextIdx = idx + 1;
+          if (nextIdx >= years.length) nextIdx = 0;
+          setCurrentYear(years[nextIdx]);
+        }, 1000);
+      } else {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+        btn.classList.remove('playing');
+        clearInterval(state.playInterval);
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingOverlay').classList.toggle('visible', show);
+    }
+
+    // ============================================
+    // Start
+    // ============================================
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

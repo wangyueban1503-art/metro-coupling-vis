@@ -1,0 +1,854 @@
+
+
+--- PAGE 1 ---
+MetroCouple: Visual Analytics for Multi-City Metro–Urbanization Coupling
+Analysis
+Yi Wang*
+School of Design
+Southern University of
+Science and Technology
+Siqi Gao†
+School of Design
+Southern University of
+Science and Technology
+Xiaohua Sun‡
+School of Design
+Southern University of
+Science and Technology
+Figure 1: The interface of MetroCouple guides planners through a subway-urbanization coupling analysis workflow. In the Map
+View (A), the core visual container displays the coupling coordination degree of each city and station area, supporting dynamic
+switching between 1km macro grid for city-wide overview and 100m micro grid for detailed diagnosis. The Right Panel (B) presents
+composite indices alongside the distribution of coordination grades across all stations, enabling quantitative diagnosis. The Left
+Control Panel (C) provides layer toggling and city selection for cross-city comparison. The Timeline (D) at the bottom drives
+temporal switching from 1990 to 2025, supporting retrospective analysis of coupling dynamics evolution.
+ABSTRACT
+As urban rail transit shifts from rapid expansion to quality-oriented
+development, understanding the coordination between metro net-
+works and urbanization has become critical for urban planning.
+Existing studies mainly focus on single-city cases or static spa-
+tial snapshots, providing limited support for analyzing the dy-
+namic coupling between metro development and urban growth
+across cities and time. We present a visual analytics system for
+metro–urbanization coupling analysis. The system integrates multi-
+source spatiotemporal data, including metro lines and stations, pop-
+ulation distribution, points of interest, building density, and GDP.
+Based on the entropy weight method, it constructs a metro devel-
+opment index and an urbanization development index, and further
+applies a coupling coordination model to quantify their relation-
+*e-mail:12311959@mail.sustech.edu.cn
+†e-mail:12310333@mail.sustech.edu.cn
+‡e-mail:sunxh@sustech.edu.cn
+ship. Through coordinated map views, temporal exploration, layer
+control, station-area analysis, the system enables users to exam-
+ine coupling patterns from the city scale to the station-area scale.
+Evaluation with representative tasks and expert feedback suggests
+that the system can help planning researchers identify spatial mis-
+matches, temporal changes, and potential optimization areas be-
+tween metro construction and urban development. This work con-
+tributes a visual analytics framework and design implications for
+metro–urbanization coupling analysis in urban rail transit planning.
+Index Terms:Geographic/Geospatial Visualization, Data Fusion
+and Integration, Design Studies, Visualization System and Toolkit
+Design, Coordinated and Multiple Views, Time-varying Data, Time
+Series Data.
+1 INTRODUCTION
+Against the backdrop of accelerating global urbanization, Urban
+Rail Transit (URT) systems, guided by Transit-Oriented Develop-
+ment (TOD) theory, have evolved beyond mere solutions to traf-
+fic congestion. They now serve as the critical backbone for shap-
+ing compact urban spatial layouts, achieving jobs-housing balance,
+and promoting mixed land use (Calthorpe, 1993; Calthorpe et al.,
+2014). Currently, China’s URT construction is undergoing a strate-
+
+
+--- PAGE 2 ---
+gic transformation from “scale expansion” to “quality improve-
+ment” (Ministry of Housing and Urban-Rural Development, 2015;
+Wang, 2016). The bidirectional interaction and dynamic coupling
+between rail transit networks and urban population distribution,
+land use, and economic activities have become a core research topic
+in urban planning and policy evaluation.
+Existing research and planning practices exhibit significant lim-
+itations when exploring the coupling relationship between rail
+transit and urbanization. Most literature focuses on static cross-
+sectional analyses of single cities at specific time points (Dong et
+al., 2013; Yao & Xiong, 2013), making it difficult to capture the dy-
+namic laws of urban morphological evolution over long time series.
+Although the Coupling Coordination Degree (CCD) model has ma-
+tured in quantitative evaluation (Liao, 1999; Liu et al., 2005), it still
+lacks intuitive diagnostic tools to assist planners in identifying spa-
+tial mismatches and evaluating policy implementation effects when
+processing multi-source, multi-scale, and multi-city heterogeneous
+data.
+To address these research gaps, this paper designs and imple-
+ments the MetroCouple visual analytics system. Rather than focus-
+ing on blind future predictions, the system is dedicated to “current
+status diagnosis” and “historical evaluation”, providing an intuitive
+decision support platform for urban morphology researchers and
+policymakers.
+2 RELATEDWORK
+This study explores how to effectively characterize the dynamic
+multi-scale coupling relationship between rail transit networks and
+urbanization processes through visual analytics, to support current
+status diagnosis and historical evaluation.
+2.1 Coupling Research on Rail Transit and Urbanization
+TOD theory is the cornerstone for understanding the interaction be-
+tween rail transit and cities.Calthorpe (1993)first proposed the
+core TOD framework, emphasizing compact, mixed land use de-
+velopment centered on public transit stations. As China’s urbaniza-
+tion enters the stock development stage, TOD theory has continu-
+ously evolved during its localization, placing greater emphasis on
+the reshaping effect of rail transit networks on urban spatial struc-
+ture (Bian, 2009; Pan, 2008; Calthorpe et al., 2014).
+In terms of quantitative evaluation, the CCD model is widely
+used to measure the interaction intensity between the rail transit
+subsystem and the urban development subsystem.Liao (1999)and
+Liu et al. (2005)established the standard calculation framework
+for this model, and subsequent scholars have conducted extensive
+empirical studies on specific cities. For example,Dong et al. (2013)
+analyzed the coupling coordination between rail transit and land use
+in Shanghai, whileYao and Xiong (2013)explored the coordinated
+development path in Beijing. However, most existing studies rely
+on static statistical cross-sectional data, making it challenging to
+reveal the dynamic evolutionary logic over long time series.
+2.2 Visual Analytics of Urban Spatiotemporal Data
+In the field of urban morphological evolution,Liu et al. (2016)
+proposed the SmartAdp system, which integrates multi-source data
+to enable in-depth analysis of urban dynamics. Regarding the cor-
+relation between human mobility and urban spatial structure, the
+InclusiViz system developed byYu et al. (2025)demonstrates how
+visualization techniques can reveal urban segregation and mobility
+relationships.V on Landesberger et al. (2015)used spatiotemporal
+graphs and clustering techniques to explore the dynamic character-
+istics of large-scale mobility data.
+Despite breakthroughs in the interactive exploration of spa-
+tiotemporal data, there remains a scarcity of visualization research
+specifically targeting the “coupling process” between rail transit
+and urbanization in urban planning scenarios. Existing systems
+mostly focus on single-dimensional mobility patterns or spatial dis-
+tributions, lacking intuitive representations of the collaborative evo-
+lution of the two subsystems (Andrienko & Andrienko, 2006; Kraak
+& Ormeling, 2010). In particular, significant research gaps exist in
+cross-city horizontal comparisons and the mining of historical pat-
+terns over long periods (more than 20 years).
+2.3 Interpretive Models and Multi-Scale Analysis
+With the application of artificial intelligence in urban research, en-
+hancing model interpretability has become a new trend in visual
+analytics. The What-If Tool developed byWexler et al. (2019)
+allows users to understand model behavior through interactive sim-
+ulation, while the VBridge system proposed byCheng et al. (2021)
+demonstrates how to connect features and data to explain complex
+predictive models.
+In urban planning, model explainability directly impacts the sci-
+entific nature of decision-making. Urban planning practices have
+shown that due to the highly uneven development of urban re-
+gions, pure prediction functions often lack academic rationality
+(Gonzalez-Navarro & Turner , 2018). Accurate diagnosis of the cur-
+rent status and policy evaluation of historical evolution are more
+valuable. For example, the U.S. rail transit impact assessment sys-
+tem represented byCervero and Landis (1997)emphasizes the im-
+portance of quantitatively measuring the interaction between rail
+transit and land development using multi-source geographic data,
+and numerous subsequent studies have verified the effectiveness of
+this approach (Bowes & Ihlanfeldt, 2001; Duncan, 2011). How-
+ever, traditional calculation methods often rely on static statistical
+tables, making it difficult to present the complex evolution of urban
+morphology over long time series.
+3 SYSTEMDESIGN ANDFUNCTIONALMODULES
+The system design is oriented towards the practical needs of urban
+planning, transforming TOD theory and the CCD model into an
+interactive visual diagnostic tool.
+3.1 Requirements Analysis and Design Goals
+Early literature reviews (Liu et al., 2016; Yu et al., 2025) indicate
+that existing visualization tools for rail-urban coupling coordination
+lack capabilities in long-term, multi-city coupling analysis. Ac-
+cordingly, this system establishes three core Design Goals (DGs):
+•DG1: Cross-scale station catchment correlation analysis.
+The station catchment is the most direct unit through which
+rail transit influences urban space. The system must break the
+traditional single-city scale and support hierarchical drilling
+from “city-wide overview—specific line—microscopic sta-
+tion catchment”. In particular, it should provide coupling di-
+agnosis capabilities with 100m precision for the core “walka-
+ble pocket” range (typically 300 800m) in TOD planning, to
+identify differences in development efficiency across differ-
+ent station catchments (Ministry of Housing and Urban-Rural
+Development, 2015; Liu, 2017).
+•DG2: Dynamic retrospective of long-term coupling evolu-
+tion.Urban development and rail transit construction exhibit
+significant temporal lag effects (Cervero & Landis, 1997;
+Zhang et al., 2019). The system must support annual retro-
+spective from 1990 to 2025, enabling the evaluation of the
+long-term actual contribution of past planning decisions (such
+as the route selection of a specific line) to station catchment
+development through spatiotemporal backtracking.
+•DG3: Transparent diagnosis of multi-source heteroge-
+neous indicators.The system must integrate heterogeneous
+
+
+--- PAGE 3 ---
+data on population, economy, transportation, and social vital-
+ity, helping planners decompose the contribution rate of sub-
+systems through interactive means, and realizing the transfor-
+mation from “phenomenon discovery” to “cause analysis”.
+Based on these three goals, our system not only focuses on pre-
+senting coupling results but also emphasizes tracing the historical
+evolution logic and diagnosing the current status of imbalance, pro-
+viding new insights for urban morphology research and policy eval-
+uation.
+3.2 Theoretical Background and Core Model Logic
+3.2.1 Station Catchment as the Core Research Object
+Under the TOD theoretical framework, the station catchment is
+not only a transportation node but also a catalyst for urban vital-
+ity (Calthorpe, 1993). This system defines the station catchment as
+a composite spatial unit within walking distance centered on a rail
+transit station.
+Drawing on the Node-Place Model, the system decomposes sta-
+tion catchment attributes into transportation attributes (Node) and
+land use attributes (Place), corresponding to the tension relation-
+ship between the rail transit subsystem (U 1) and the urbanization
+subsystem (U2) (Wang & Zhou, 2021). To achieve precise measure-
+ment at the station catchment scale, the system abandons adminis-
+trative boundary restrictions and uses 100m-resolution grids as the
+basic spatial unit, enabling the capture of subtle differences within
+station catchments (such as between areas near entrances/exits and
+edge plots).
+3.2.2 Coupling Coordination Degree Logic Layer
+The system quantifies the interaction level of the “rail tran-
+sit—urbanization” system through the CCD model:
+•Subsystem construction:The rail transit subsystem (U 1)
+measures line coverage and station density within the station
+catchment. The urbanization subsystem (U2) integrates popu-
+lation density (LandScan), output intensity (GDP), and func-
+tional mix (POI).
+•Dynamic weighting logic:The entropy weight method
+is used to weight multi-dimensional indicators (Sun et al.,
+2012), automatically identifying the factors that contribute
+most to system coordination in different years. For example,
+in the early stage of station catchment development, the high
+variation in building density leads to an increased weight; in
+the mature stage, POI richness becomes the core evaluation
+indicator.
+•Coupling evaluation formula:Calculate the coupling degree
+Cand coordination indexTfor each grid, and finally generate
+the coupling coordination degreeD(Liao, 1999).
+3.3 System Functional Module Design
+The MetroCouple system is divided into four highly synergistic
+functional modules, corresponding to four interactive behaviors:
+“spatial positioning, parameter control, time retrospective, and in-
+depth analysis”.
+3.3.1 Coupling Situation Map Module
+The map module is the core visual container of the system, re-
+sponsible for presenting the coupling status of each city and sta-
+tion catchment. The system supports dynamic switching between
+1km macro grids (for city-wide situation observation) and 100m
+micro grids (for specific station catchment diagnosis). This design
+responds to the requirements of multi-source data fusion visualiza-
+tion proposed byLiu et al. (2016), effectively solving the problem
+of data noise interference at the station catchment scale through
+multi-scale layered rendering.
+3.3.2 Interactive Control Panel
+This module carries the flexibility of the system, allowing experts
+to adjust analysis parameters for different scenarios. The sys-
+tem integrates six representative rail transit cities: Beijing, Shang-
+hai, Guangzhou, Shenzhen, Hangzhou, and Chengdu. These cities
+cover different development stages and TOD implementation paths,
+providing diverse analytical backgrounds for system evaluation
+(Cao & Lin, 2008). Beijing and Shanghai represent mature megac-
+ities, Shenzhen and Hangzhou embody rapidly growing rail tran-
+sit cities, and Chengdu reflects the development characteristics of
+western expanding cities. Users can place cities at different de-
+velopment stages in the same coordinate system to observe differ-
+ences in station catchment coupling patterns under different eco-
+nomic backgrounds (such as mature Shanghai vs. rapidly expand-
+ing Chengdu).
+3.3.3 Long-Term Playback Timeline
+The timeline module is designed as the main axis driving system
+state changes, supporting annual retrospective from 2000 to 2035.
+By dragging the timeline, users can intuitively observe the “climb-
+ing” process of coupling coordination degree in surrounding station
+catchments over time after the opening of a new line (Cervero &
+Landis, 1997), and also identify station catchments that “have rail
+transit but remain in a low coupling state for a long time”. This
+long-term visual analysis plays an important role in evaluating the
+scientific nature of past urban planning and predicting future devel-
+opment potential.
+3.3.4 Detailed Data Diagnosis Panel
+The diagnosis panel aims to eliminate the “black box” feeling of al-
+gorithms and provide quantitative decision-making basis for plan-
+ners (Wexler et al., 2019; Cheng et al., 2021). When a user clicks
+on a specific station catchment on the map, the panel automatically
+generates subsystem contributions. IfU1 ≫U 2, the system prompts
+that the area belongs to the “transportation-led type” and needs to
+strengthen land development guidance; ifU 2 ≫U 1, it prompts the
+“demand overload type” and needs to optimize transportation con-
+nections. This data-based automatic prompt directly improves the
+practicality of the system in the actual planning workflow.
+3.4 Visual Communication and Interaction Design
+3.4.1 Visual Style and Color System
+MetroCouple adopts a minimalist 2D visual style with a dark black
+background, highlighting the spatial distribution law of coupling
+relationships with low visual noise. The overall interface uses dark
+blue-gray black as the main tone, creating a calm atmosphere simi-
+lar to a large-screen digital management interface; core data indica-
+tors are presented in high-contrast cyan-blue/purple luminous fonts,
+forming a sharp contrast with the dark background and facilitating
+planners to quickly capture key values from a distance.
+The color semantics of the system are concentrated in the cou-
+pling coordination degree color spectrum design. Based on the clas-
+sification system ofLiao (1999), the system divides CCD values
+into five levels, corresponding to a progressive color spectrum from
+warm to cold: extreme imbalance is marked in deep red, barely co-
+ordinated in orange-yellow, initially coordinated in grass green, and
+high-quality coordinated in cyan-blue to dark blue.
+3.4.2 Layer System and Overlay Logic
+The system map window adopts a multi-layer overlay architecture,
+allowing users to freely switch between different dimensions of ur-
+ban elements. The top layer is the rail transit network element,
+which includes three independently controllable sub-layers:
+•Station catchment range layer:Renders the isochrone cov-
+erage area of each rail transit station calculated based on the
+
+
+--- PAGE 4 ---
+Table 1: Evaluation Indicators for Rail Transit and Urbanization at Station Scale
+Category Indicator Definition Formula
+Rail Transit Road Network Density Total road length per unit areaD=L/S
+Rail Transit Pedestrian Access Coverage Accessible area / theoretical walk areaC=S a/St
+Urbanization Population Density Population per unit areaP=N p/S
+Urbanization POI Density Points of interest per unit areaI=N poi/S
+Urbanization Economic Vitality Economic output per unit areaG=GDP/S
+actual road network with semi-transparent color blocks. The
+color of the color blocks is encoded as the coupling coordi-
+nation degree level of the station catchment, forming a dual
+mapping of “station catchment—coupling degree”.
+•Rail transit line layer:Overlaid on the base map with thin
+lines to present the topological structure of the urban rail tran-
+sit network. The line color uniformly adopts the system’s
+main tone.
+•Rail transit station layer:Independently marks the position
+of each station with circular markers, taking into account the
+node readability of the network topology and the minimum
+display accuracy during map zooming.
+The above three sub-layers can be independently enabled or dis-
+abled through the slide switches on the left control panel, ensuring
+controllable information load.
+3.4.3 Information Hierarchy of the Right Indicator Panel
+As the main data outlet of the system, the right panel presents five
+core sections from top to bottom:
+•Rail transit development index:Displays the rail transit de-
+velopment indexU 1 value of the currently selected city in
+large highlighted characters.
+•Urban development index:Displays the urban development
+indexU 2 value side by side in large highlighted characters,
+forming a visual correspondence withU 1.
+•Coupling coordination degree:Directly presents the com-
+prehensive CCD value (e.g., 0.469) and maps it to the corre-
+sponding coordination level label (“barely coordinated”), re-
+ducing the cognitive threshold from quantitative models to
+qualitative judgments.
+•Coordinated development level distribution:Shows the
+number of stations at each CCD level in the current year in the
+form of side-by-side color blocks, with the color of the blocks
+corresponding to the five-level color spectrum described in
+Section 3.4.1.
+•Annual coupling coordination degree change line chart:
+Presents the evolution trajectory of the average CCD value
+from 2000 to 2023 with a line chart, providing a direct visual
+anchor for policy lag effect review and supporting users to
+compare policy nodes with curve inflection points (Cervero
+& Landis, 1997).
+3.4.4 Multi-City Horizontal Comparison Interaction
+The system supports simultaneous checking of up to four target
+cities for horizontal comparison. The map window will display the
+spatial distribution of coupling coordination degree of each city in
+parallel, placing the rail-urbanization coupling performance under
+different economic development backgrounds under the same stan-
+dard, providing a visual analytical basis for cross-city policy refer-
+ence.
+4 RAILTRANSITSTATIONCATCHMENTDATAPROCESSING
+PIPELINE ANDALGORITHMIMPLEMENTATION
+This chapter elaborates on the technical implementation scheme
+of the MetroCouple system. The system constructs an automated
+data pipeline covering raw data input to coupling indicator out-
+put. Taking the station catchment as the core spatial unit, it real-
+izes the quantitative measurement of the interaction between urban
+rail transit and urbanization through spatial standardization, multi-
+dimensional indicator extraction, dynamic weighting, and coupling
+modeling.
+4.1 Mathematical Construction and Definition of Station
+Catchment Spatial Units
+The station catchment is the basic spatial measurement unit for
+TOD coupling analysis. To overcome the defect that traditional
+circular buffers cannot reflect the real walking environment, this
+system uses Network Isochrone as the mathematical representation
+of the station catchment.
+4.1.1 Implementation of Walking Isochrone Algorithm
+Based on the “15-minute community life circle” theory (Ministry
+of Housing and Urban-Rural Development, 2015), the system uses
+graph theory algorithms to search for travel costs in the topological
+road network:
+•Road network graph construction:Use OSMnx to obtain
+urban vector road networks from OpenStreetMap and con-
+struct a weighted graphG= (V,E)(Boeing, 2017).
+•Reachable area calculation:Take the station coordinates
+as the starting nodev 0, and use the Dijkstra algorithm to
+extract the covered node set under the set walking speed
+Vwalk =1.2m/sand time thresholdT=900s(Karner , 2018).
+•Geometry generation:Perform Alpha-Shape operation on
+the node set to generate a closed polygonS station. This def-
+inition method can more truly reflect the actual radiation ef-
+ficiency of stations to surrounding plots than Euclidean dis-
+tance (Shen et al., 2018; Wang & Zhou, 2021).
+4.1.2 Normalization of Spatial Scales
+Due to the scale conflict between LandScan population data (1km
+resolution) and building density data (100m resolution), the data
+pipeline performs raster reprojection and resampling. According to
+the suggestions ofLiu et al. (2016)in multi-source urban data fu-
+sion, the system aligns all rasters to the WGS 84 coordinate system
+and uniformly resamples them into 100m×100m grids to adapt to
+microscopic diagnosis at the station catchment scale.
+4.2 Multi-Dimensional Feature Extraction of Station
+Catchments
+The second stage of the data pipeline is to extract the feature vectors
+of the rail transit subsystem (U 1) and the urbanization subsystem
+(U2) from the station catchment polygons.
+
+
+--- PAGE 5 ---
+4.2.1 Rail Transit Development Level Indicators (U 1)
+•Road network penetration rate:Calculate the ratio of the
+total road length to the area within the station catchment, re-
+flecting the walking network support of the station catchment.
+•Rail service intensity:Count the number of lines and their
+operating years within the station catchment. The calculation
+logic refers to the research on the long-term anchoring effect
+of rail transit on land byCervero and Landis (1997), com-
+bined with the measurement idea of node centrality in com-
+plex networks (Chen et al., 2017).
+4.2.2 Urbanization Comprehensive Level Indicators (U 2)
+•Population carrying intensity:Use the Zonal Statistics al-
+gorithm to project LandScan raster population onto station
+catchment polygons, and calculate the accurate total popula-
+tion using the area-weighted allocation method (Rose et al.,
+2021).
+•Socio-economic vitality:Integrate Chinese Academy of Sci-
+ences GDP rasters and Amap POI data. The functional mix
+is calculated using the Shannon entropy formula to measure
+the balance of POI categories such as commerce and resi-
+dence, reflecting the functional diversity of the station catch-
+ment (Frank & Pivo, 1994; Huston et al., 2015).
+•Physical development intensity:Extract the average build-
+ing coverage rate within the station catchment using 100m
+building density rasters, reflecting the land development in-
+tensity.
+Table 2: Overview of Datasets Used in This Study
+Dataset Spatial Res. Temporal Res. Time Range
+Urban Administrative Map Geographic Coordinates Yearly Metro opening to presentUrban Street Map Geographic Coordinates Yearly Metro opening to presentMetro Lines & Stations Geographic Coordinates Yearly Metro opening to presentPopulation Distribution 1km Gridded Yearly 2000–2025Land Use Intensity 1km Gridded 5-year intervals 1990–2020POI Nodes Geographic Coordinates Yearly 2012–2025GDP Distribution 1km Gridded 5-year intervals 1995–2020
+4.3 Objective Dynamic Weighting Algorithm Based on
+Entropy Weight Method
+To eliminate the subjective bias of artificial weighting and cap-
+ture the indicator variability of different cities in different historical
+stages, the system embeds a global entropy weighting engine based
+on information theory.
+4.3.1 Matrix Construction and Standardization
+Construct the original evaluation matrixX={x i j}n×m, and use the
+range standardization method to map data of different dimensions
+to the[0,1]interval. To avoid zero values in subsequent logarith-
+mic operations, perform a non-negative translation of 0.0001 on
+the standardized results according to the suggestions ofSun et al.
+(2012).
+4.3.2 Weight Generation Pipeline
+•Calculate information entropy:e j =−k ∑(Pi j lnPi j). The
+larger the entropy valuee j, the smaller the difference of the
+indicator among each station catchment, and the lower the
+amount of information provided.
+•Determine weights:Normalize the difference coefficient
+d j =1−e j to obtain the indicator weightW j.
+•Calculate scores:Obtain the subsystem scoresU 1 andU 2
+respectively. This objective weighting method can effectively
+capture the evolution of the importance of certain indicators
+(such as population density in the early stage and POI mix in
+the later stage) over long time series (Sun et al., 2012; Shen et
+al., 2018).
+4.4 Implementation of Coupling Coordination Degree
+Model
+This is the core logical step of the data pipeline, aiming to quantify
+the interaction quality betweenU 1 andU 2:
+•Coupling degree (C):Use the formulaC=
+2
+p
+(U1U2)/(U1 +U2)2 to describe the strength of the
+association between the two systems.
+•Coordination index (T):SetT=αU 1 +βU 2, whereα=
+β=0.5, representing that rail construction and urban devel-
+opment are equally important (Liao, 1999).
+•Coupling coordination degree (D):Finally calculateD=√C×T. TheDvalue takes into account both the associa-
+tion strength between systems and the overall development
+level, effectively avoiding the evaluation trap of “low-level
+high coupling” (Liu et al., 2005).
+4.5 Architecture Design and Engineering Execution of
+the Data Pipeline
+This pipeline is implemented using the Python geospatial technol-
+ogy stack:
+•Data extraction stage:The system traverses the annual
+datasets from 1990 to 2025 and extracts active stations.
+•Spatial calculation stage:Call osmnx to dynamically gener-
+ate 15-minute walking isochrone polygons, and use rasterstats
+to perform zonal statistics.
+•Model calculation stage:Execute the entropy weight method
+script to generate annual weights, and call the coupling algo-
+rithm engine to output theDvalue of each station.
+•Persistence and display stage:The calculation results are
+stored in the PostGIS database in GeoJSON format, support-
+ing dynamic rendering by the front-end through the timeline.
+5 SYSTEMEVALUATION ANDCASESTUDY
+5.1 Evaluation Methodology and Experimental Design
+To verify the effectiveness and practical value of the MetroCou-
+ple system in the coupling analysis of urban rail transit and urban-
+ization, this paper refers to the design research evaluation method
+commonly used in the field of visual analytics (Sedlmair et al.,
+2012) and combines the evaluation framework of InclusiViz (Yu
+et al., 2025) in urban spatiotemporal visual analytics to construct
+an evaluation scheme for urban planning scenarios. The evaluation
+focuses on the system’s ability to support understanding, diagnosis,
+and historical retrospective of complex spatiotemporal coupling re-
+lationships.
+The evaluation process plans to invite experts from two fields:
+urban planning and visual analytics, to ensure that the system
+not only meets planning business needs but also conforms to the
+human-computer interaction logic of visual analytics. The overall
+evaluation is carried out around three core dimensions:
+Task completion effectiveness: Verify whether users can quickly
+identify high-coupling areas, low-coordination areas, and the spa-
+tial matching relationship between rail transit construction and ur-
+ban expansion through the system.
+
+
+--- PAGE 6 ---
+Figure 2: System overview of MetroCouple, a visual analytics sys-
+tem for analyzing multi-city coupling between subway networks and
+urbanization.
+Figure 3: Analysis pipeline of the proposed framework, including
+station-area feature extraction, coupling coordination modeling, and
+visual analytics applications.
+Intuitiveness of visual expression: Evaluate whether the system’s
+visual expression in multi-scale maps, time retrospective, and indi-
+cator linkage is clear.
+Integration potential in planning workflows: Verify whether the
+system has the potential to be integrated into real TOD planning
+and policy evaluation scenarios.
+Unlike traditional visual analytics systems that only focus on in-
+teraction efficiency, MetroCouple emphasizes the explanatory con-
+nection between “model—history—space”.
+5.2 Case Study: Shenzhen
+Shenzhen is one of the most representative cities in China for TOD
+practice. Its rail transit construction and urban spatial expansion
+have highly synchronized development characteristics, which can
+well reflect the application value of the system in “historical evalu-
+ation” and “current status diagnosis”.
+5.2.1 Coupling Characteristics of Rail Transit and Urban De-
+velopment in Shenzhen
+Through the system’s timeline retrospective function, it can be ob-
+served that Shenzhen’s early rail transit construction was mainly
+concentrated in the Luohu-Futian axis area, which was also the ear-
+liest core area of high-intensity urban development in Shenzhen. It
+has long shown high CCD values on MetroCouple’s coupling coor-
+dination degree map, indicating that a good synergistic relationship
+has been formed between rail transit construction and population,
+economic, and functional development.
+Further observation of the evolution process from 2000 to 2025
+reveals that the coupling coordination degree of Shenzhen’s sta-
+tion catchments shows an overall continuous upward trend. Es-
+pecially after the gradual expansion of the rail transit network, a
+large number of station catchments originally in a “barely coor-
+dinated” state have gradually transformed into “well-coordinated”
+and “high-quality coordinated” states, indicating that Shenzhen’s
+urban development model has obvious “rail transit-led” character-
+istics. That is, rail transit construction not only serves existing ur-
+ban areas but also actively guides subsequent land development and
+functional agglomeration.
+The system’s long-term retrospective function also reveals an im-
+portant evolution process of Shenzhen’s urban morphology: early
+Shenzhen’s urban development mainly expanded in a belt shape
+along transportation corridors. With the continuous densification of
+the rail network, multiple high-coordination nodes have gradually
+formed a stable urban group structure. It can be clearly observed
+from the visualization results that rail transit lines have played a
+key role in promoting the transformation of urban space from “lin-
+ear expansion” to “multi-center grouping” (Pan, 2008).
+5.2.2 TOD Characteristics Under Multi-City Comparison
+In the horizontal comparison of the six case cities, Shenzhen shows
+the highest overall coupling coordination level. Compared with
+early rail transit cities such as Beijing and Shanghai (Dong et al.,
+2013; Yao & Xiong, 2013), most core station catchments in Shen-
+zhen maintain a synchronous growth state of highU 1 (rail transit
+development index) andU 2 (urban development index), indicating
+that its TOD strategy has achieved good coordination effects during
+long-term implementation.
+At the same time, the system also reveals a certain degree of
+low coupling phenomenon in some newly built station catchments
+on the periphery of Shenzhen. These areas usually show that rail
+transit facilities have been laid out in advance, but population den-
+sity, functional mix, and social vitality are still relatively insuffi-
+cient, presenting a “transportation-led” characteristic ofU 1 ≫U 2.
+This phenomenon is common in most rapidly expanding rail tran-
+sit cities in China (Cheng, 2025), indicating that some edge areas
+in Shenzhen have the problem of advanced rail construction and
+temporarily mismatched functional configuration.
+This finding further proves that MetroCouple can not only iden-
+tify “successful TOD areas” but also effectively diagnose potential
+spatial mismatch problems, providing a basis for subsequent land
+development strategies and resource allocation optimization.
+5.2.3 Verification of Design Goals
+The Shenzhen case verifies two of the three core design goals pro-
+posed in Chapter 3:
+In terms of DG2 “dynamic retrospective of long-term coupling
+evolution”, the system can clearly show the long-term impact of rail
+construction on urban morphological evolution and support histori-
+cal review of policy effects;
+In terms of DG3 “transparent diagnosis of multi-source het-
+erogeneous indicators”, the system can help users identify the
+formation reasons of high-coordination areas and mismatched ar-
+eas through station catchment portraits and subsystem contribution
+analysis.
+Therefore, MetroCouple can not only serve as a display tool
+for rail transit development status but also as a visual diagnostic
+platform supporting TOD historical research and planning decision
+analysis.
+5.3 Preliminary Expert Feedback
+As the complete large-scale user evaluation is still in progress, this
+study invited an expert with an urban planning background to con-
+duct a preliminary experience and interview with the system proto-
+type.
+
+
+--- PAGE 7 ---
+The expert recognized the intuitiveness and research value of
+MetroCouple in the “visual expression of coupling relationships”,
+believing that the system has successfully transformed the abstract
+coupling coordination degree model into an observable and compa-
+rable spatial evolution process, enabling researchers to more intu-
+itively understand the interaction between rail transit construction
+and urban development.
+The expert particularly emphasized the potential of the system
+in “model scalability”. The current system mainly uses a unified
+station catchment radius for analysis, while in real urban planning
+practices, different functional areas often require differentiated spa-
+tial scales. For example, in Singapore’s TOD research, a core walk-
+ing radius of about 300m is adopted for central business district
+stations, while a multi-level station catchment range of 500 800m
+is used for peripheral areas (Liu, 2017). The expert believes that
+MetroCouple’s current visualization architecture has reserved good
+expansion space for future multi-scale custom coupling analysis.
+The expert also pointed out that the coupling coordination degree
+model tends to identify potential opportunity points more easily in
+regions with relatively balanced economic development. For ex-
+ample, some U.S. rail transit studies prioritize areas with relatively
+homogeneous economic structures for analysis to reduce the inter-
+ference of spatial heterogeneity on coupling results.
+In addition, the expert believes that the system’s continuous
+recording of historical evolution processes has high academic value.
+Through long-term accumulated time series data, researchers can
+not only analyze the urban morphological evolution process but also
+trace the relationship between policy implementation and rail con-
+struction at different stages, providing a new analytical perspective
+for TOD policy evaluation and urban development research.
+6 DISCUSSION
+6.1 Reducing the Cognitive Threshold of Coupling
+Analysis Through Visualization
+Under the traditional coupling coordination degree analysis frame-
+work, planners need to have a solid quantitative analysis foundation
+to understand the calculation logic and indicator composition of the
+CCD model. This technical barrier has largely hindered the pop-
+ularization and application of coupling analysis methods in actual
+planning decision-making.
+One of the core contributions of MetroCouple is transforming
+complex coupling models into intuitive visual language. Through
+the five-level color spectrum design, planners can judge the cou-
+pling coordination level of a station catchment solely by color with-
+out understanding the technical details of information entropy and
+coupling degree formulas; through the hierarchical progressive de-
+sign of the right indicator panel, the corresponding relationship be-
+tween the comprehensive CCD value and subsystem scores is clear
+at a glance; through the historical retrospective function of the time-
+line, policy effect evaluation changes from static tables to dynamic
+evolution animations. This “theory-driven visual transformation”
+lowers the application threshold of coupling analysis methods.
+6.2 System Limitations and Future Work
+As a lightweight prototype system, MetroCouple focuses on the in-
+tuitive communication of core indicators, but still has the following
+limitations that need to be gradually improved in subsequent re-
+search:
+Data level: The current system uses population dynamic data
+(LandScan), economic output data (GDP), and POI data with differ-
+ent temporal resolutions. Among them, GDP data is only updated to
+2020, and estimation errors are introduced through piecewise linear
+interpolation completion.
+Station catchment definition and variable radius model: The
+system currently uses a unified 15-minute (900-second) walking
+isochrone as the station catchment boundary. However, as pointed
+out by experts, in actual TOD planning, differentiated analysis
+radii should be adopted for city center stations and peripheral
+stations—the former for refined evaluation with a 300m walking
+circle, and the latter for evaluation with an extended radius of
+500 800m. This feedback directly points out the limitation of the
+current system’s “processing unbalanced cities with a unified ra-
+dius”. Future work will explore a variable radius model that auto-
+matically matches the analysis range according to station levels to
+adapt to the functional area differences within different cities.
+Customized coupling expansion of multiple factors: The cur-
+rent system only covers four indicators: population, GDP, POI, and
+building density. Experts proposed that the system should have the
+ability to flexibly introduce new coupling factors according to dif-
+ferent planning scenarios and research needs, such as industrial type
+distribution, carbon emission intensity, and community service fa-
+cility density. This demand points to the expansion potential of
+the system as a “customized TOD analysis tool”: in the future, a
+factor library and weight configuration module can be established,
+enabling planners and urban researchers to select different factor
+combinations for in-depth coupling analysis for specific research
+objects.
+Timeline animation presentation of urban morphological evolu-
+tion: Although the current system’s timeline function can drive the
+annual switching of map states, its visualization fluency and anima-
+tion effects have not yet reached the presentation level required for
+urban morphology research. Expert feedback indicates that if the
+coherence and visual expressiveness of animations are enhanced
+(such as adding transition animations and change highlighting), the
+system will be able to more effectively support visual narrative and
+policy review scenarios of urban morphological evolution laws.
+Evaluation level: The current expert evaluation is still in the pre-
+liminary stage, and larger-scale user experiments will be carried out
+in the future to systematically verify the integration potential of this
+system in the actual planning workflow.
+7 CONCLUSION
+This paper designs and implements MetroCouple, a visual analytics
+system for urban rail transit and urbanization evolution across mul-
+tiple cities. Taking the station catchment as the core spatial unit, the
+system establishes a complete analysis process from macro trends
+to micro causes through rasterized fusion processing of long-term
+multi-source data and the CCD model.
+The case study of Shenzhen verifies the practical value of the
+system in identifying high-coupling station catchments, diagnosing
+abnormal points, and retrospectively reviewing urban morphologi-
+cal evolution. The horizontal comparison results of six cities show
+that Shenzhen, as a typical rail transit-led city, has achieved remark-
+able results in promoting the coordination between rail construction
+and urban development through its TOD strategy.
+In summary, MetroCouple provides an extensible research plat-
+form for the visual analysis of the coupling relationship between
+rail transit and urbanization through lightweight prototype design
+and rigorous coupling models. The value of the system lies not
+only in its current diagnostic functions but also in its long-term ap-
+plication potential as an iterative tool for TOD planning.
+ACKNOWLEDGMENTS
+Special thanks to Professor Wang Yang of Urban Planning for ac-
+cepting the interview as an expert and offering many constructive
+suggestions.
+REFERENCES
+[1] Bian, J. (2009). Urban rail transit and urban spatial form pattern selec-
+tion.Urban Transport,7(5), 40–44.
+[2] Cao, X., & Lin, Q. (2008). World urban metro development history and
+patterns.Acta Geographica Sinica,63(12), 1257–1267.
+
+
+--- PAGE 8 ---
+[3] Chen, P., Chen, F., & Hu, Y . (2017). Centrality research of urban rail
+transit network based on complex networks.Complex Systems and Com-
+plexity Science,14(2), 97–102.
+[4] Cheng, M. (2025).Coupling coordination measurement and evaluation
+of rail transit and urban space: A case study of Hefei City[Master’s
+thesis]. Anhui Jianzhu University.
+[5] Dong, W., Liu, W., & Dong, J. (2013). Evaluation of coupling coordi-
+nation degree between urban rail transit and land use: A case study of
+Shanghai.Journal of Tianjin Normal University (Natural Science Edi-
+tion),33(4), 51–55.
+[6] Ministry of Housing and Urban-Rural Development. (2015).Planning
+and design guidelines for urban rail transit corridors.
+[7] Liao, Z. (1999). Quantitative evaluation and classification system of
+coordinated development of environment and economy: A case study
+of Pearl River Delta urban agglomeration.Tropical Geography,19(2),
+171–177.
+[8] Liu, Q. (2017). Influencing factors of circle structure division in TOD
+planning areas.International Urban Planning,32(5), 72–78.
+[9] Liu, Y ., Li, R., & Song, X. (2005). Analysis of coupling degree between
+urbanization and ecological environment in China.Journal of Natural
+Resources,20(1), 105–112.
+[10] Pan, H. (2008). Optimization of spatial structure in metropolitan areas
+with rail transit.Urban Development Studies,15(S1), 25–34.
+[11] Calthorpe, P., Yang, B., & Zhang, Q. (2014).TOD in China: Land
+use and transportation planning and design guidelines for low-carbon
+cities. China Architecture & Building Press.
+[12] Shen, L., Wang, Y ., Zhang, C., et al. (2018). Relationship between
+built environment of walking-accessible area around rail transit stations
+and rail commuting: A case study of 44 stations in Beijing.Acta Geo-
+graphica Sinica,73(12), 2423–2439.
+[13] Wang, C., & Zhou, J. (2021). Spatial coupling model and empirical
+study of old city metro stations based on ”node-place”: A case study of
+Guangzhou.Modern Urban Research, (7), 80–87.
+[14] Wang, Y . (2016). Transit-oriented development planning theory appli-
+cable to Chinese cities.Urban Transport,14(6), 40–47.
+[15] Yao, Z., & Xiong, Z. (2013). Coordinated development of urban rail
+transit and land use in Beijing.Urban Rapid Rail Transit,26(6), 5–8.
+[16] Zhang, C., Xia, H., & Yu, X. (2019). Spatiotemporal response of coor-
+dination between rail transit and urban space development: A case study
+of Beijing.City Planning Review,43(5), 111–117.
+[17] Andrienko, N., & Andrienko, G. (2006).Exploratory analysis of spa-
+tial and temporal data. Springer.
+[18] Barthelemy, M. (2011). Spatial networks.Physics Reports,499(1–3),
+1–101.
+[19] Boeing, G. (2017). OSMnx: New methods for acquiring, constructing,
+analyzing, and visualizing complex street networks.Computers, Envi-
+ronment and Urban Systems,65, 126–139.
+[20] Bowes, D. R., & Ihlanfeldt, K. R. (2001). Identifying the impacts of
+rail transit stations on residential property values.Journal of Urban Eco-
+nomics,50(1), 1–25.
+[21] Calthorpe, P. (1993).The next American metropolis: Ecology, com-
+munity, and the American dream. Princeton Architectural Press.
+[22] Cervero, R., & Landis, J. (1997). Twenty years of the Bay Area Rapid
+Transit system: Land use and development impacts.Transportation Re-
+search Part A,31(4), 309–333.
+[23] Cheng, F., Liu, D., Du, F., Lin, Y ., Zhou, Z., Bentancur, M., & Qu, H.
+(2021). VBridge: Connecting the dots between features and data to ex-
+plain healthcare models.IEEE Transactions on Visualization and Com-
+puter Graphics,28(1), 378–388.
+[24] Duncan, M. (2011). The impact of transit-oriented development on
+housing prices in San Diego, CA.Urban Studies,48(1), 101–127.
+[25] Frank, L. D., & Pivo, G. (1994). Impacts of mixed use and density on
+utilization of three modes of travel: Single-occupant vehicle, transit, and
+walking.Transportation Research Record,1466, 44–52.
+[26] Gonzalez-Navarro, M., & Turner, M. A. (2018). Subways and urban
+growth: Evidence from world cities.Journal of Urban Economics,106,
+83–100.
+[27] Kraak, M. J., & Ormeling, F. (2010).Cartography: Visualization of
+spatial data(3rd ed.). Pearson Education.
+[28] Latora, V ., & Marchiori, M. (2001). Efficient behavior of small-world
+networks.Physical Review Letters,87(19), 198701.
+[29] Liu, D., Weng, D., Li, Y ., Bao, J., Zheng, Y ., Qu, H., & Wu, Y . (2016).
+SmartAdp: Visual analytics of large-scale taxi trajectories for selecting
+billboard locations.IEEE Transactions on Visualization and Computer
+Graphics,23(1), 1–10.
+[30] Lundberg, S. M., & Lee, S. I. (2017). A unified approach to inter-
+preting model predictions.Advances in Neural Information Processing
+Systems,30, 4765–4774.
+[31] Sedlmair, M., Meyer, M., & Munzner, T. (2012). Design study
+methodology: Reflections from the trenches and the stacks.IEEE Trans-
+actions on Visualization and Computer Graphics,18(12), 2431–2440.
+[32] Simini, F., Barlacchi, G., Luca, M., & Pellizzoni, L. (2021). A deep
+gravity model for mobility flows generation.Nature Communications,
+12(1), 6576.
+[33] V on Landesberger, T., Brodkorb, F., Roskosch, P., Andrienko, N., An-
+drienko, G., & Kerren, A. (2015). MobilityGraphs: Visual analysis of
+mass mobility dynamics via spatio-temporal graphs and clustering.IEEE
+Transactions on Visualization and Computer Graphics,22(1), 21–30.
+[34] Wexler, J., Pushkarna, M., Bolukbasi, T., Wattenberg, M., Viegas,
+F., & Phillips, J. (2019). The What-If Tool: Interactive probing of ma-
+chine learning models.IEEE Transactions on Visualization and Com-
+puter Graphics,26(1), 56–65.
+[35] Wood, J., Dykes, J., & Slingsby, A. (2010). Visualisation of origins,
+destinations and flows with OD maps.The Cartographic Journal,47(2),
+117–129.
+[36] Yu, Y ., Wang, Y ., Zhang, Y ., Qu, H., & Liu, D. (2025). InclusiViz:
+Visual analytics of human mobility data for understanding and mitigating
+urban segregation.arXiv Preprint. https://arxiv.org/abs/2501.03594

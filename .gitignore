@@ -1,0 +1,28 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / OS metadata
+.idea/
+.claude/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log
+
+# Large raw/source archives and local reports
+raw/
+processed/
+*.pdf
+
+# Generated algorithm outputs can be rebuilt and are synced to frontend when needed.
+# Keep frontend/*.json because GitHub Pages needs the static visualization data.
+algorithm/output/
+
+# Complete analytical road networks are too large for normal GitHub pushes.
+# Keep them locally or publish them separately with Git LFS / Releases / cloud storage.
+algorithm/data/road_network_*.json

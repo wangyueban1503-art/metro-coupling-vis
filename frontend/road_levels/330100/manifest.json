@@ -1,0 +1,19 @@
+{
+  "city": "330100",
+  "coordDecimals": 5,
+  "chunkSize": 4000,
+  "levels": {
+    "low": {
+      "lines": 15000,
+      "bytes": 8435574
+    },
+    "mid": {
+      "lines": 70000,
+      "bytes": 17208101
+    },
+    "high": {
+      "lines": 160577,
+      "bytes": 26030048
+    }
+  }
+}
