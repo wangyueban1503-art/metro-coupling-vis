@@ -1160,6 +1160,10 @@
       currentRoadLevel: null,
       roadLevelLayers: new Map(),
       roadRenderer: null,
+      stationAreaRenderer: null,
+      metroLineRenderer: null,
+      metroStationRenderer: null,
+      populationRenderer: null,
       loadedMetroCity: null,
       hasFittedMap: false
     };
@@ -1466,6 +1470,10 @@
       state.map.getPane('metroLinePane').style.zIndex = 520;
       state.map.createPane('metroStationPane');
       state.map.getPane('metroStationPane').style.zIndex = 530;
+      state.populationRenderer = L.canvas({ pane: 'populationPane', padding: 1.5 });
+      state.stationAreaRenderer = L.canvas({ pane: 'stationAreaPane', padding: 1.5 });
+      state.metroLineRenderer = L.canvas({ pane: 'metroLinePane', padding: 1.5 });
+      state.metroStationRenderer = L.canvas({ pane: 'metroStationPane', padding: 1.5 });
       state.stationLayers.realMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         pane: 'realMapPane',
         attribution: '&copy; OpenStreetMap',
@@ -1984,6 +1992,7 @@
         { type: 'FeatureCollection', features: lineFeatures },
         {
           pane: 'metroLinePane',
+          renderer: state.metroLineRenderer,
           style: f => ({
             color: f.properties.color || '#6f8fc7',
             weight: 3,
@@ -2014,6 +2023,7 @@
           {
             pointToLayer: (f, latlng) => L.circleMarker(latlng, {
               pane: 'metroStationPane',
+              renderer: state.metroStationRenderer,
               radius: 4, color: '#ffffff', weight: 1.5, fillColor: '#6f8fc7', fillOpacity: 0.88
             }),
             onEachFeature: (feature, layer) => {
@@ -2431,6 +2441,7 @@
 
       state.stationLayers.areas = L.geoJSON(geojson, {
         pane: 'stationAreaPane',
+        renderer: state.stationAreaRenderer,
         style: (feature) => {
           const d = feature.properties.D || 0.5;
           const color = getCouplingColor(d);
@@ -2451,7 +2462,7 @@
           });
 
           layer.on('mouseover', () => {
-            layer.setStyle({ fillOpacity: 0.8, weight: 3 });
+            layer.setStyle({ fillOpacity: 0.68, weight: 2.5 });
           });
 
           layer.on('mouseout', () => {
@@ -2544,15 +2555,16 @@
 
       if (!state.layers.population) return;
 
-      if (state.currentCity !== '440300') {
-        console.warn('Population heatmap is currently available for Shenzhen only.');
+      const populationCityName = cities[state.currentCity]?.nameZh;
+      if (!populationCityName) {
+        console.warn('No population city name configured for', state.currentCity);
         return;
       }
 
-      const data = await fetchJSON(`${DATA_DIR}population_深圳市_${state.currentYear}.geojson`);
+      const data = await fetchJSON(`${DATA_DIR}population_${populationCityName}_${state.currentYear}.geojson`);
       if (token !== state.loadToken) return;
       if (!data || !data.features) {
-        console.warn('No Shenzhen population data for', state.currentYear);
+        console.warn('No population data for', populationCityName, state.currentYear);
         return;
       }
 
@@ -2577,6 +2589,7 @@
           const normalized = Math.max(0, Math.min(1, p.population / p95));
           return L.circleMarker([p.coordinates[1], p.coordinates[0]], {
             pane: 'populationPane',
+            renderer: state.populationRenderer,
             radius: 5 + normalized * 9,
             stroke: false,
             fillColor: getPopulationColor(normalized),
