@@ -12,25 +12,27 @@
   <script src="./vendor/echarts.min.js"></script>
   <style>
     :root {
-      --bg-primary: #0a0e14;
-      --bg-secondary: #111620;
-      --bg-tertiary: #1a2130;
-      --bg-hover: #232d42;
-      --text-primary: #e8eaed;
-      --text-secondary: #8b95a5;
-      --text-muted: #5a6374;
-      --border-color: #2a3444;
-      --accent-transit: #00d4ff;
-      --accent-urban: #ff6b9d;
-      --accent-coupling: #a855f7;
-      --coupling-1: #dc2626;
-      --coupling-2: #f97316;
-      --coupling-3: #eab308;
-      --coupling-4: #22c55e;
-      --coupling-5: #06b6d4;
-      --metro-line: #00bcd4;
-      --station-area: rgba(0, 212, 255, 0.15);
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      --bg-primary: #f4f5f8;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #fbfbfd;
+      --bg-hover: #eef0f6;
+      --text-primary: #22242a;
+      --text-secondary: #596071;
+      --text-muted: #7b8293;
+      --border-color: #d9dce6;
+      --border-soft: #eceef4;
+      --accent-transit: #5e75ad;
+      --accent-urban: #68a56d;
+      --accent-coupling: #7e72ad;
+      --accent-warm: #d79a2b;
+      --coupling-1: #bc6b63;
+      --coupling-2: #d79a5c;
+      --coupling-3: #d5bd5d;
+      --coupling-4: #83bb87;
+      --coupling-5: #6f96d6;
+      --metro-line: #6f8fc7;
+      --station-area: rgba(111, 150, 214, 0.18);
+      --shadow: 0 8px 24px rgba(61, 65, 82, 0.12);
     }
 
     * {
@@ -49,37 +51,38 @@
 
     .app-container {
       display: grid;
-      grid-template-columns: 280px 1fr 320px;
+      grid-template-columns: 300px 1fr 350px;
       grid-template-rows: 1fr auto;
       height: 100vh;
-      gap: 1px;
+      gap: 2px;
       background: var(--border-color);
     }
 
     /* Left Sidebar */
     .left-sidebar {
       background: var(--bg-secondary);
-      padding: 20px;
+      padding: 18px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 14px;
     }
 
     .sidebar-section {
       background: var(--bg-tertiary);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 4px;
+      padding: 14px;
       border: 1px solid var(--border-color);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8);
     }
 
     .section-title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      margin-bottom: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-primary);
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -87,9 +90,9 @@
 
     .section-title::before {
       content: '';
-      width: 3px;
-      height: 12px;
-      background: var(--accent-transit);
+      width: 4px;
+      height: 14px;
+      background: #8179b5;
       border-radius: 2px;
     }
 
@@ -103,8 +106,8 @@
     .city-btn {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px 8px;
+      border-radius: 4px;
+      padding: 9px 8px;
       font-size: 12px;
       color: var(--text-secondary);
       cursor: pointer;
@@ -120,22 +123,22 @@
     }
 
     .city-btn.active {
-      background: rgba(0, 212, 255, 0.15);
+      background: #e6ebf6;
       border-color: var(--accent-transit);
       color: var(--accent-transit);
     }
 
     .language-switch {
       position: fixed;
-      top: 14px;
-      right: 14px;
+      top: 12px;
+      right: 12px;
       z-index: 1600;
       display: flex;
       gap: 4px;
       padding: 4px;
-      background: rgba(17, 22, 32, 0.88);
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 4px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
@@ -144,7 +147,7 @@
       min-width: 38px;
       padding: 6px 8px;
       border: none;
-      border-radius: 6px;
+      border-radius: 3px;
       background: transparent;
       color: var(--text-secondary);
       font-family: inherit;
@@ -161,7 +164,7 @@
 
     .language-option.active {
       color: var(--accent-transit);
-      background: rgba(0, 212, 255, 0.15);
+      background: #e6e9f5;
     }
 
     /* Layer Toggle */
@@ -169,7 +172,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
+      padding: 9px 0;
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -181,23 +184,25 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-secondary);
+      min-width: 0;
+      line-height: 1.25;
     }
 
     .layer-icon {
       width: 18px;
       height: 18px;
-      border-radius: 4px;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 10px;
     }
 
-    .layer-icon.population { background: rgba(255, 107, 157, 0.3); color: var(--accent-urban); }
-    .layer-icon.road { background: rgba(0, 212, 255, 0.3); color: var(--accent-transit); }
-    .layer-icon.station { background: rgba(168, 85, 247, 0.3); color: var(--accent-coupling); }
+    .layer-icon.population { background: #e4f0e4; color: var(--accent-urban); }
+    .layer-icon.road { background: #e6ebf6; color: var(--accent-transit); }
+    .layer-icon.station { background: #ebe8f4; color: var(--accent-coupling); }
 
     .toggle {
       width: 40px;
@@ -242,7 +247,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background: #0a0e14;
+      background: #eef0f3;
       position: absolute;
       top: 0;
       left: 0;
@@ -255,8 +260,8 @@
       z-index: 1000;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px 18px;
+      border-radius: 4px;
+      padding: 12px 16px;
       backdrop-filter: blur(12px);
     }
 
@@ -273,9 +278,9 @@
       font-size: 12px;
       font-family: 'JetBrains Mono', monospace;
       background: var(--accent-transit);
-      color: var(--bg-primary);
+      color: #ffffff;
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 3px;
       font-weight: 500;
     }
 
@@ -289,9 +294,9 @@
 
     .legend-gradient {
       width: 100%;
-      height: 12px;
+      height: 10px;
       background: linear-gradient(to right, var(--coupling-1), var(--coupling-2), var(--coupling-3), var(--coupling-4), var(--coupling-5));
-      border-radius: 6px;
+      border-radius: 3px;
       margin-bottom: 6px;
     }
 
@@ -306,60 +311,65 @@
     .legend-caption {
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
+      gap: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       margin-top: 6px;
+      line-height: 1.2;
     }
 
     /* Right Sidebar */
     .right-sidebar {
       background: var(--bg-secondary);
-      padding: 20px;
+      padding: 56px 18px 18px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .metric-card {
       background: var(--bg-tertiary);
-      border-radius: 12px;
-      padding: 18px;
+      border-radius: 4px;
+      padding: 14px;
       border: 1px solid var(--border-color);
     }
 
     .metric-card.selected {
       border-color: var(--accent-transit);
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+      box-shadow: 0 0 0 2px rgba(94, 117, 173, 0.12);
     }
 
     .metric-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      gap: 10px;
     }
 
     .metric-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: 0;
+      line-height: 1.25;
+      max-width: 230px;
     }
 
     .metric-badge {
       font-size: 10px;
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 3px;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .metric-badge.U1 { background: rgba(0, 212, 255, 0.2); color: var(--accent-transit); }
-    .metric-badge.U2 { background: rgba(255, 107, 157, 0.2); color: var(--accent-urban); }
-    .metric-badge.D { background: rgba(168, 85, 247, 0.2); color: var(--accent-coupling); }
+    .metric-badge.U1 { background: #e6ebf6; color: var(--accent-transit); }
+    .metric-badge.U2 { background: #e4f0e4; color: var(--accent-urban); }
+    .metric-badge.D { background: #ebe8f4; color: var(--accent-coupling); }
 
     .metric-value {
-      font-size: 36px;
+      font-size: 32px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
       margin-bottom: 4px;
@@ -381,16 +391,16 @@
       margin-left: 6px;
     }
 
-    .level-1 { background: rgba(220, 38, 38, 0.2); color: var(--coupling-1); }
-    .level-2 { background: rgba(249, 115, 22, 0.2); color: var(--coupling-2); }
-    .level-3 { background: rgba(234, 179, 8, 0.2); color: var(--coupling-3); }
-    .level-4 { background: rgba(34, 197, 94, 0.2); color: var(--coupling-4); }
-    .level-5 { background: rgba(6, 182, 212, 0.2); color: var(--coupling-5); }
+    .level-1 { background: rgba(188, 107, 99, 0.16); color: var(--coupling-1); }
+    .level-2 { background: rgba(215, 154, 92, 0.18); color: var(--coupling-2); }
+    .level-3 { background: rgba(213, 189, 93, 0.18); color: #9a8230; }
+    .level-4 { background: rgba(131, 187, 135, 0.18); color: #54865a; }
+    .level-5 { background: rgba(111, 150, 214, 0.18); color: var(--coupling-5); }
 
     /* Station Info */
     .station-info {
       background: var(--bg-tertiary);
-      border-radius: 12px;
+      border-radius: 4px;
       padding: 14px;
       border: 1px solid var(--border-color);
       display: none;
@@ -413,8 +423,8 @@
     }
 
     .regional-dashboard {
-      background: radial-gradient(circle at 50% 42%, rgba(34, 197, 94, 0.08), transparent 58%), var(--bg-tertiary);
-      border-radius: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
       padding: 16px;
       border: 1px solid var(--border-color);
       display: none;
@@ -427,8 +437,8 @@
     .regional-title {
       font-size: 11px;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: 0;
       margin-bottom: 10px;
     }
 
@@ -456,14 +466,14 @@
       color: var(--text-muted);
       font-size: 12px;
       line-height: 1.7;
-      border: 1px dashed rgba(139,149,165,0.25);
-      border-radius: 10px;
+      border: 1px dashed rgba(123,130,147,0.36);
+      border-radius: 4px;
     }
 
     /* Chart */
     .chart-container {
       background: var(--bg-tertiary);
-      border-radius: 12px;
+      border-radius: 4px;
       padding: 16px;
       border: 1px solid var(--border-color);
       height: 220px;
@@ -472,8 +482,8 @@
     .chart-title {
       font-size: 11px;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: 0;
       margin-bottom: 12px;
     }
 
@@ -486,15 +496,15 @@
     .timeline-container {
       grid-column: 1 / -1;
       grid-row: 2;
-      background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(17,22,32,0.95) 100%);
-      padding: 12px 26px 14px;
+      background: var(--bg-secondary);
+      padding: 12px 24px 14px;
       display: grid;
       grid-template-columns: 96px minmax(0, 1fr) 76px;
       gap: 18px;
       border-top: 1px solid var(--border-color);
       position: relative;
       overflow: hidden;
-      min-height: 210px;
+      min-height: 190px;
     }
 
     .timeline-container::before {
@@ -504,8 +514,8 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-transit), transparent);
-      opacity: 0.4;
+      background: #8a80b8;
+      opacity: 0.32;
     }
 
     .timeline-label {
@@ -528,7 +538,7 @@
     .timeline-main {
       min-width: 0;
       display: grid;
-      grid-template-rows: 54px 36px 100px;
+      grid-template-rows: 70px 36px 82px;
       gap: 2px;
       position: relative;
     }
@@ -540,23 +550,23 @@
       padding-bottom: 16px;
       color: var(--accent-transit);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
-      text-shadow: 0 0 18px rgba(0,212,255,0.45);
+      text-shadow: none;
     }
 
     .timeline-series-legend {
       display: grid;
       gap: 4px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       line-height: 1;
     }
 
-    .timeline-series-legend .u1 { color: #69c7ff; }
-    .timeline-series-legend .u2 { color: #ff7aa9; }
-    .timeline-series-legend .cd { color: #5e6cff; }
+    .timeline-series-legend .u1 { color: var(--accent-transit); }
+    .timeline-series-legend .u2 { color: var(--accent-urban); }
+    .timeline-series-legend .cd { color: var(--accent-coupling); }
 
     .timeline-events {
       position: relative;
@@ -567,13 +577,13 @@
       position: absolute;
       top: 0;
       transform: translateX(-50%);
-      min-width: 84px;
-      max-width: 150px;
-      color: #d8dee9;
-      font-size: 11px;
-      line-height: 1.15;
+      min-width: 82px;
+      max-width: 136px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      line-height: 1.18;
       text-align: center;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+      text-shadow: none;
       pointer-events: none;
     }
 
@@ -581,7 +591,7 @@
       content: '';
       position: absolute;
       left: 50%;
-      top: 29px;
+      top: 32px;
       transform: translateX(-50%);
       width: 2px;
       height: 22px;
@@ -593,16 +603,16 @@
       content: '';
       position: absolute;
       left: 50%;
-      top: 48px;
+      top: 51px;
       transform: translateX(-50%) rotate(45deg);
       width: 8px;
       height: 8px;
       background: currentColor;
     }
 
-    .timeline-event.rail { color: #6db7e8; }
-    .timeline-event.plan { color: #d5a05f; }
-    .timeline-event.major { color: #e65d72; font-weight: 700; }
+    .timeline-event.rail { color: var(--accent-transit); }
+    .timeline-event.plan { color: #a98147; }
+    .timeline-event.major { color: #8a80b8; font-weight: 700; }
 
     .timeline-track {
       position: relative;
@@ -622,7 +632,7 @@
     .timeline-year {
       font-size: 10px;
       font-family: 'JetBrains Mono', monospace;
-      color: #718096;
+      color: var(--text-muted);
       cursor: pointer;
       padding: 18px 2px 0;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -638,7 +648,7 @@
       transform: translateX(-50%) scaleX(0);
       width: 1px;
       height: 7px;
-      background: rgba(148,163,184,0.7);
+      background: rgba(123,130,147,0.7);
       border-radius: 0;
       transition: transform 0.25s ease;
     }
@@ -654,12 +664,12 @@
     .timeline-year.active {
       color: var(--accent-transit);
       font-weight: 700;
-      text-shadow: 0 0 20px var(--accent-transit);
+      text-shadow: none;
     }
 
     .timeline-year.active::after {
       transform: translateX(-50%) scaleX(1.5);
-      box-shadow: 0 0 8px var(--accent-transit);
+      box-shadow: 0 0 0 2px rgba(94,117,173,0.14);
     }
 
     .timeline-slider {
@@ -667,15 +677,15 @@
       width: 100%;
       height: 7px;
       top: 7px;
-      background: #c7ccd6;
+      background: #d8dbe4;
       border-radius: 999px;
       cursor: pointer;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.28);
+      box-shadow: inset 0 1px 2px rgba(61,65,82,0.14);
     }
 
     .timeline-progress {
       height: 100%;
-      background: #2f82b7;
+      background: var(--accent-transit);
       border-radius: 999px;
       width: 0%;
       transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -706,7 +716,7 @@
       width: 26px;
       height: 26px;
       background: #ffffff;
-      border: 4px solid rgba(255, 255, 255, 0.72);
+      border: 3px solid var(--accent-transit);
       border-radius: 50%;
       position: absolute;
       top: 50%;
@@ -715,13 +725,13 @@
       transition: left 0.15s cubic-bezier(0.4, 0, 0.2, 1),
                   transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
                   box-shadow 0.2s ease;
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.22), 0 0 18px rgba(255,255,255,0.55);
+      box-shadow: 0 2px 10px rgba(61,65,82,0.2);
       z-index: 5;
     }
 
     .timeline-handle:hover {
       transform: translate(-50%, -50%) scale(1.15);
-      box-shadow: 0 0 24px rgba(255,255,255,0.78), 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 14px rgba(61,65,82,0.22);
     }
 
     .timeline-handle:active {
@@ -734,28 +744,28 @@
     }
 
     @keyframes handle-pulse {
-      0%, 100% { box-shadow: 0 0 12px rgba(255,255,255,0.7), 0 2px 8px rgba(0,0,0,0.3); }
-      50% { box-shadow: 0 0 28px rgba(255,255,255,0.9), 0 0 40px rgba(255,255,255,0.35); }
+      0%, 100% { box-shadow: 0 2px 10px rgba(61,65,82,0.18); }
+      50% { box-shadow: 0 4px 18px rgba(61,65,82,0.26); }
     }
 
     .timeline-play {
       width: 46px;
       height: 46px;
       border-radius: 50%;
-      background: #2f82b7;
-      border: 2px solid rgba(255,255,255,0.28);
+      background: var(--accent-transit);
+      border: 1px solid #4f6599;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3);
+      box-shadow: 0 3px 10px rgba(61,65,82,0.16);
       color: #ffffff;
     }
 
     .timeline-play:hover {
       transform: scale(1.1);
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+      box-shadow: 0 6px 18px rgba(61,65,82,0.2);
     }
 
     .timeline-play:active {
@@ -767,8 +777,8 @@
     }
 
     @keyframes pulse-btn {
-      0%, 100% { box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3); }
-      50% { box-shadow: 0 4px 24px rgba(0, 212, 255, 0.6); }
+      0%, 100% { box-shadow: 0 3px 10px rgba(61,65,82,0.16); }
+      50% { box-shadow: 0 6px 18px rgba(61,65,82,0.24); }
     }
 
     #currentYearLabel {
@@ -776,7 +786,7 @@
       font-size: 20px;
       font-weight: 700;
       color: var(--accent-transit);
-      text-shadow: 0 0 24px var(--accent-transit);
+      text-shadow: none;
       min-width: 56px;
       text-align: center;
       letter-spacing: 2px;
@@ -784,9 +794,9 @@
 
     .timeline-chart {
       width: 100%;
-      height: 100px;
-      background: rgba(255,255,255,0.02);
-      border-top: 1px solid rgba(148,163,184,0.18);
+      height: 82px;
+      background: #fbfbfd;
+      border-top: 1px solid var(--border-soft);
     }
 
     /* Loading State */
@@ -796,7 +806,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(10, 14, 20, 0.9);
+      background: rgba(244, 245, 248, 0.88);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -833,9 +843,9 @@
 
     /* Tooltip */
     .leaflet-tooltip {
-      background: var(--bg-secondary) !important;
+      background: #ffffff !important;
       border: 1px solid var(--border-color) !important;
-      border-radius: 8px !important;
+      border-radius: 4px !important;
       color: var(--text-primary) !important;
       font-family: 'Noto Sans SC', sans-serif !important;
       font-size: 12px !important;
@@ -906,7 +916,7 @@
         <div class="section-title" data-i18n="dataLayers">Data Layers</div>
         <div class="layer-item">
           <div class="layer-label">
-            <div class="layer-icon" style="background: rgba(148, 163, 184, 0.28); color: #cbd5e1;" data-i18n="iconMap">M</div>
+            <div class="layer-icon" style="background: #eceef4; color: #7b8293;" data-i18n="iconMap">M</div>
             <span data-i18n="realMap">Base Map</span>
           </div>
           <div class="toggle" data-layer="realMap" onclick="toggleLayer(this)"></div>
@@ -934,14 +944,14 @@
         </div>
         <div class="layer-item">
           <div class="layer-label">
-            <div class="layer-icon" style="background: rgba(0, 188, 212, 0.3); color: #00bcd4;" data-i18n="iconMetroLine">L</div>
+            <div class="layer-icon" style="background: #e6ebf6; color: #5e75ad;" data-i18n="iconMetroLine">L</div>
             <span data-i18n="metroLines">Metro Lines</span>
           </div>
           <div class="toggle active" data-layer="metroLines" onclick="toggleLayer(this)"></div>
         </div>
         <div class="layer-item">
           <div class="layer-label">
-            <div class="layer-icon" style="background: rgba(255, 193, 7, 0.3); color: #ffc107;" data-i18n="iconMetroStation">S</div>
+            <div class="layer-icon" style="background: #f3ead7; color: #a98147;" data-i18n="iconMetroStation">S</div>
             <span data-i18n="metroStations">Metro Stations</span>
           </div>
           <div class="toggle active" data-layer="metroStations" onclick="toggleLayer(this)"></div>
@@ -1325,11 +1335,11 @@
     // Coupling Colors
     // ============================================
     function getCouplingColor(d) {
-      if (d >= 0.8) return '#06b6d4';
-      if (d >= 0.6) return '#22c55e';
-      if (d >= 0.4) return '#eab308';
-      if (d >= 0.2) return '#f97316';
-      return '#dc2626';
+      if (d >= 0.8) return '#6f96d6';
+      if (d >= 0.6) return '#83bb87';
+      if (d >= 0.4) return '#d5bd5d';
+      if (d >= 0.2) return '#d79a5c';
+      return '#bc6b63';
     }
 
     function getLevelClass(d) {
@@ -1537,11 +1547,19 @@
       const container = document.getElementById('timelineEvents');
       if (!container) return;
       const events = buildTimelineEvents();
-      container.innerHTML = events.map(e => `
-        <div class="timeline-event ${e.type}" style="left: ${yearPercent(e.year)}%;">
+      let lastPercent = -Infinity;
+      let lastLane = 0;
+      container.innerHTML = events.map(e => {
+        const percent = yearPercent(e.year);
+        const lane = percent - lastPercent < 8 ? 1 - lastLane : 0;
+        lastPercent = percent;
+        lastLane = lane;
+        return `
+        <div class="timeline-event ${e.type}" style="left: ${percent}%; top: ${lane * 22}px;">
           <strong>${e.year}</strong><br/>${t(e.labelKey)}
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function initChart() {
@@ -1552,23 +1570,23 @@
         grid: { top: 10, right: 10, bottom: 25, left: 40 },
         tooltip: {
           trigger: 'axis',
-          backgroundColor: '#111620',
-          borderColor: '#2a3444',
-          textStyle: { color: '#e8eaed', fontSize: 11 }
+          backgroundColor: '#ffffff',
+          borderColor: '#d9dce6',
+          textStyle: { color: '#22242a', fontSize: 11 }
         },
         xAxis: {
           type: 'category',
           data: [],
-          axisLine: { lineStyle: { color: '#2a3444' } },
-          axisLabel: { color: '#5a6374', fontSize: 10 }
+          axisLine: { lineStyle: { color: '#d9dce6' } },
+          axisLabel: { color: '#7b8293', fontSize: 10 }
         },
         yAxis: {
           type: 'value',
           min: 0,
           max: 1,
-          axisLine: { lineStyle: { color: '#2a3444' } },
-          axisLabel: { color: '#5a6374', fontSize: 10, formatter: v => v.toFixed(1) },
-          splitLine: { lineStyle: { color: '#1a2130' } }
+          axisLine: { lineStyle: { color: '#d9dce6' } },
+          axisLabel: { color: '#7b8293', fontSize: 10, formatter: v => v.toFixed(1) },
+          splitLine: { lineStyle: { color: '#eceef4' } }
         },
         series: [
           {
@@ -1576,27 +1594,27 @@
             type: 'line',
             smooth: true,
             data: [],
-            lineStyle: { color: '#00d4ff', width: 2 },
-            itemStyle: { color: '#00d4ff' },
-            areaStyle: { color: 'rgba(0, 212, 255, 0.1)' }
+            lineStyle: { color: '#5e75ad', width: 2 },
+            itemStyle: { color: '#5e75ad' },
+            areaStyle: { color: 'rgba(94, 117, 173, 0.10)' }
           },
           {
             name: 'U2',
             type: 'line',
             smooth: true,
             data: [],
-            lineStyle: { color: '#ff6b9d', width: 2 },
-            itemStyle: { color: '#ff6b9d' },
-            areaStyle: { color: 'rgba(255, 107, 157, 0.1)' }
+            lineStyle: { color: '#68a56d', width: 2 },
+            itemStyle: { color: '#68a56d' },
+            areaStyle: { color: 'rgba(104, 165, 109, 0.10)' }
           },
           {
             name: 'D',
             type: 'line',
             smooth: true,
             data: [],
-            lineStyle: { color: '#a855f7', width: 2 },
-            itemStyle: { color: '#a855f7' },
-            areaStyle: { color: 'rgba(168, 85, 247, 0.1)' }
+            lineStyle: { color: '#7e72ad', width: 2 },
+            itemStyle: { color: '#7e72ad' },
+            areaStyle: { color: 'rgba(126, 114, 173, 0.10)' }
           }
         ]
       });
@@ -1888,7 +1906,7 @@
       const lineFeatures = renderedLines.map(line => ({
         type: 'Feature',
         geometry: { type: 'LineString', coordinates: line.coordinates || [] },
-        properties: { name: line.name || '', color: line.color || '#00bcd4' }
+        properties: { name: line.name || '', color: line.color || '#6f8fc7' }
       }));
 
       state.stationLayers.lines = L.geoJSON(
@@ -1896,9 +1914,9 @@
         {
           pane: 'metroLinePane',
           style: f => ({
-            color: f.properties.color || '#00bcd4',
-            weight: 4,
-            opacity: 0.95,
+            color: f.properties.color || '#6f8fc7',
+            weight: 3,
+            opacity: 0.86,
             lineCap: 'round',
             lineJoin: 'round'
           }),
@@ -1925,7 +1943,7 @@
           {
             pointToLayer: (f, latlng) => L.circleMarker(latlng, {
               pane: 'metroStationPane',
-              radius: 4, color: '#fff', weight: 1.5, fillColor: '#00bcd4', fillOpacity: 0.9
+              radius: 4, color: '#ffffff', weight: 1.5, fillColor: '#6f8fc7', fillOpacity: 0.88
             }),
             onEachFeature: (feature, layer) => {
               const props = feature.properties || {};
@@ -1967,9 +1985,9 @@
         renderer: state.roadRenderer,
         interactive: false,
         style: () => ({
-          color: '#4dd7ff',
+          color: '#8ca3c9',
           weight: 0.8,
-          opacity: 0.46,
+          opacity: 0.34,
           lineCap: 'round',
           lineJoin: 'round'
         })
@@ -2220,17 +2238,17 @@
             const p = shape.project(coord);
             segment.push([p.x, p.y]);
           } else if (segment.length > 0) {
-            if (segment.length > 1) paths.push({ points: segment, color: line.color || '#00d4ff' });
+            if (segment.length > 1) paths.push({ points: segment, color: line.color || '#6f8fc7' });
             segment = [];
           }
         });
-        if (segment.length > 1) paths.push({ points: segment, color: line.color || '#00d4ff' });
+        if (segment.length > 1) paths.push({ points: segment, color: line.color || '#6f8fc7' });
       });
 
       if (paths.length === 0 && lines.length > 0) {
         paths.push({
           points: [[106, 113], [194, 201]],
-          color: lines[0].color || '#00d4ff'
+          color: lines[0].color || '#6f8fc7'
         });
       }
 
@@ -2238,7 +2256,7 @@
         const dPath = item.points.map((p, idx) =>
           `${idx === 0 ? 'M' : 'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`
         ).join(' ');
-        return `<path d="${dPath}" fill="none" stroke="${item.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" clip-path="url(#stationAreaClip)"/>`;
+        return `<path d="${dPath}" fill="none" stroke="${item.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.82" clip-path="url(#stationAreaClip)"/>`;
       }).join('');
     }
 
@@ -2277,20 +2295,20 @@
               <path d="${areaPath}"/>
             </clipPath>
           </defs>
-          <text x="150" y="24" text-anchor="middle" fill="#e8eaed" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">CCD ${d.toFixed(2)}</text>
-          <text x="150" y="44" text-anchor="middle" fill="#8b95a5" font-size="13" font-weight="600">${levelName}</text>
-          <circle cx="150" cy="157" r="92" fill="rgba(34,197,94,0.18)" stroke="rgba(34,197,94,0.26)" stroke-width="1.2"/>
-          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(0,212,255,0.14)" stroke-width="16" stroke-linecap="round"/>
-          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(168,85,247,0.14)" stroke-width="16" stroke-linecap="round"/>
-          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(0,212,255,0.78)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u1To} 100" filter="url(#regionalGlow)">
+          <text x="150" y="24" text-anchor="middle" fill="#22242a" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">CCD ${d.toFixed(2)}</text>
+          <text x="150" y="44" text-anchor="middle" fill="#7b8293" font-size="13" font-weight="600">${levelName}</text>
+          <circle cx="150" cy="157" r="92" fill="rgba(131,187,135,0.16)" stroke="rgba(131,187,135,0.28)" stroke-width="1.2"/>
+          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(94,117,173,0.18)" stroke-width="16" stroke-linecap="round"/>
+          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(126,114,173,0.18)" stroke-width="16" stroke-linecap="round"/>
+          <path d="${arcPath(150, 154, 112, 210, 328)}" pathLength="100" fill="none" stroke="rgba(94,117,173,0.82)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u1To} 100" filter="url(#regionalGlow)">
             <animate attributeName="stroke-dasharray" from="${u1From} 100" to="${u1To} 100" dur="0.55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
           </path>
-          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(168,85,247,0.92)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u2To} 100" filter="url(#regionalGlow)">
+          <path d="${arcPath(150, 154, 112, 32, 150)}" pathLength="100" fill="none" stroke="rgba(126,114,173,0.86)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${u2To} 100" filter="url(#regionalGlow)">
             <animate attributeName="stroke-dasharray" from="${u2From} 100" to="${u2To} 100" dur="0.55s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
           </path>
-          <path d="${areaPath}" fill="${areaColor}" fill-opacity="0.58" stroke="rgba(232,234,237,0.7)" stroke-width="1.7"/>
+          <path d="${areaPath}" fill="${areaColor}" fill-opacity="0.54" stroke="rgba(34,36,42,0.34)" stroke-width="1.7"/>
           ${linePaths}
-          <circle cx="150" cy="157" r="12" fill="#0a0e14" stroke="#ffffff" stroke-width="4"/>
+          <circle cx="150" cy="157" r="12" fill="#ffffff" stroke="#22242a" stroke-width="3"/>
           <text x="16" y="292" fill="var(--accent-transit)" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">U1 ${u1.toFixed(2)}</text>
           <text x="214" y="292" fill="var(--accent-coupling)" font-size="17" font-family="JetBrains Mono, monospace" font-weight="600">U2 ${u2.toFixed(2)}</text>
         </svg>
@@ -2441,9 +2459,9 @@
     function getPopulationColor(t) {
       const value = Math.max(0, Math.min(1, t));
       if (value < 0.5) {
-        return interpolateColor('ffb3d1', 'ff6b9d', value * 2);
+        return interpolateColor('dbead9', '8fbd8f', value * 2);
       }
-      return interpolateColor('ff6b9d', 'a855f7', (value - 0.5) * 2);
+      return interpolateColor('8fbd8f', '7e72ad', (value - 0.5) * 2);
     }
 
     async function loadPopulationLayer(options = {}) {
@@ -2545,12 +2563,12 @@
             confine: true,
             axisPointer: {
               type: 'line',
-              lineStyle: { color: '#c94b5d', width: 2 }
+              lineStyle: { color: '#8a80b8', width: 2 }
             },
             backgroundColor: 'rgba(255,255,255,0.94)',
-            borderColor: '#c94b5d',
-            borderWidth: 2,
-            textStyle: { color: '#111620', fontSize: 12 },
+            borderColor: '#d9dce6',
+            borderWidth: 1,
+            textStyle: { color: '#22242a', fontSize: 12 },
             formatter: params => {
               const year = params[0]?.axisValue ?? '';
               const u1 = params.find(p => p.seriesName === 'U1')?.value;
@@ -2566,7 +2584,7 @@
             axisTick: { show: false },
             axisLine: { show: false },
             axisLabel: {
-              color: '#718096',
+              color: '#7b8293',
               fontFamily: 'JetBrains Mono',
               fontSize: 10,
               interval: 3
@@ -2586,8 +2604,8 @@
               smooth: true,
               showSymbol: false,
               data: u1Data,
-              lineStyle: { color: 'rgba(105,199,255,0.25)', width: 1 },
-              areaStyle: { color: 'rgba(105,199,255,0.34)' },
+              lineStyle: { color: 'rgba(94,117,173,0.35)', width: 1 },
+              areaStyle: { color: 'rgba(94,117,173,0.22)' },
               emphasis: { focus: 'series' }
             },
             {
@@ -2597,8 +2615,8 @@
               smooth: true,
               showSymbol: false,
               data: u2Data,
-              lineStyle: { color: 'rgba(255,122,169,0.35)', width: 1 },
-              areaStyle: { color: 'rgba(255,122,169,0.42)' },
+              lineStyle: { color: 'rgba(104,165,109,0.35)', width: 1 },
+              areaStyle: { color: 'rgba(104,165,109,0.24)' },
               emphasis: { focus: 'series' }
             },
             {
@@ -2608,13 +2626,13 @@
               symbol: 'circle',
               symbolSize: 5,
               data: dData,
-              lineStyle: { color: '#2736d9', width: 3 },
-              itemStyle: { color: '#7b61ff', borderColor: '#ffffff', borderWidth: 1 },
+              lineStyle: { color: '#7e72ad', width: 3 },
+              itemStyle: { color: '#7e72ad', borderColor: '#ffffff', borderWidth: 1 },
               markLine: {
                 symbol: ['none', 'circle'],
                 symbolSize: [0, 10],
                 label: { show: false },
-                lineStyle: { color: 'rgba(255,255,255,0.9)', width: 2 },
+                lineStyle: { color: 'rgba(126,114,173,0.72)', width: 2 },
                 data: [{ xAxis: state.currentYear }]
               }
             }
@@ -2707,7 +2725,7 @@
             layer.setStyle({
               fillOpacity: 0.7,
               weight: 3,
-              color: '#ffffff'
+              color: '#5b4fa1'
             });
           } else {
             state.stationLayers.areas.resetStyle(layer);
